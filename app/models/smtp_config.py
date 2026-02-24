@@ -21,7 +21,8 @@ class SmtpConfig(Base):
     port: Mapped[int] = mapped_column(Integer, default=587)
     username: Mapped[str] = mapped_column(String(255))
     password: Mapped[str] = mapped_column(String(500))  # Fernet 加密存储
-    use_tls: Mapped[bool] = mapped_column(Boolean, default=True)
+    use_tls: Mapped[bool] = mapped_column(Boolean, default=True)   # STARTTLS（端口 587）
+    use_ssl: Mapped[bool] = mapped_column(Boolean, default=False)  # SSL（端口 465）
     from_email: Mapped[str] = mapped_column(String(255))
     from_name: Mapped[str | None] = mapped_column(String(100))
     max_per_hour: Mapped[int] = mapped_column(Integer, default=100)

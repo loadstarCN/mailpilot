@@ -21,9 +21,13 @@ async def smtp_config_list(
     db: AsyncSession = Depends(get_db),
     admin: Admin = Depends(get_current_admin),
 ):
-    pid = uuid.UUID(project_id) if project_id else None
+    try:
+        pid = uuid.UUID(project_id) if project_id else None
+    except ValueError:
+        pid = None
     configs = await smtp_service.list_smtp_configs(db, pid)
     projects = await project_service.list_projects(db)
+    project_map = {str(p.id): p.name for p in projects}
     flash = get_flash(request)
     response = templates.TemplateResponse(
         "smtp_configs/list.html",
@@ -32,6 +36,7 @@ async def smtp_config_list(
             "admin": admin,
             "configs": configs,
             "projects": projects,
+            "project_map": project_map,
             "selected_project_id": project_id,
             "flash": flash,
         },
@@ -61,16 +66,26 @@ async def smtp_config_create_submit(
     admin: Admin = Depends(get_current_admin),
 ):
     form = await request.form()
+    try:
+        project_id = uuid.UUID(form.get("project_id", ""))
+    except ValueError:
+        projects = await project_service.list_projects(db)
+        return templates.TemplateResponse(
+            "smtp_configs/form.html",
+            {"request": request, "admin": admin, "config": None, "projects": projects, "error": "请选择有效的项目"},
+            status_code=400,
+        )
     await smtp_service.create_smtp_config(
         db,
-        uuid.UUID(form["project_id"]),
+        project_id,
         name=form.get("name") or None,
-        host=form["host"],
+        host=form.get("host", ""),
         port=int(form.get("port", 587)),
-        username=form["username"],
-        password=form["password"],
+        username=form.get("username", ""),
+        password=form.get("password", ""),
         use_tls="use_tls" in form,
-        from_email=form["from_email"],
+        use_ssl="use_ssl" in form,
+        from_email=form.get("from_email", ""),
         from_name=form.get("from_name") or None,
         max_per_hour=int(form.get("max_per_hour", 100)),
         is_default="is_default" in form,
@@ -107,11 +122,12 @@ async def smtp_config_edit_submit(
     form = await request.form()
     kwargs = {
         "name": form.get("name") or None,
-        "host": form["host"],
+        "host": form.get("host", ""),
         "port": int(form.get("port", 587)),
-        "username": form["username"],
+        "username": form.get("username", ""),
         "use_tls": "use_tls" in form,
-        "from_email": form["from_email"],
+        "use_ssl": "use_ssl" in form,
+        "from_email": form.get("from_email", ""),
         "from_name": form.get("from_name") or None,
         "max_per_hour": int(form.get("max_per_hour", 100)),
         "is_default": "is_default" in form,

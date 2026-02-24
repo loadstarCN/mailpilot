@@ -28,6 +28,7 @@ async def task_list(
         db, project_id=pid, status=status, page=page, page_size=20
     )
     projects = await project_service.list_projects(db)
+    project_map = {str(p.id): p.name for p in projects}
     total_pages = (total + 19) // 20
     flash = get_flash(request)
     response = templates.TemplateResponse(
@@ -37,6 +38,7 @@ async def task_list(
             "admin": admin,
             "tasks": items,
             "projects": projects,
+            "project_map": project_map,
             "total": total,
             "page": page,
             "total_pages": total_pages,

@@ -21,6 +21,7 @@
         <thead class="bg-gray-50 text-gray-600">
             <tr>
                 <th class="px-4 py-3 text-left">名称</th>
+                <th class="px-4 py-3 text-left">项目</th>
                 <th class="px-4 py-3 text-left">主题</th>
                 <th class="px-4 py-3 text-left">描述</th>
                 <th class="px-4 py-3 text-center">状态</th>
@@ -31,6 +32,7 @@
             {% for t in templates_list %}
             <tr class="hover:bg-gray-50">
                 <td class="px-4 py-3 font-medium">{{ t.name }}</td>
+                <td class="px-4 py-3 text-gray-500 text-xs">{{ project_map.get(t.project_id|string, '-') }}</td>
                 <td class="px-4 py-3">{{ t.subject[:50] }}{{ '...' if t.subject|length > 50 }}</td>
                 <td class="px-4 py-3 text-gray-500">{{ t.description or '-' }}</td>
                 <td class="px-4 py-3 text-center">
@@ -50,7 +52,7 @@
             </tr>
             {% endfor %}
             {% if not templates_list %}
-            <tr><td colspan="5" class="px-4 py-8 text-center text-gray-400">暂无模板</td></tr>
+            <tr><td colspan="6" class="px-4 py-8 text-center text-gray-400">暂无模板</td></tr>
             {% endif %}
         </tbody>
     </table>

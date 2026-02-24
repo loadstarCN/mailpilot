@@ -37,7 +37,8 @@ async def login_submit(request: Request, db: AsyncSession = Depends(get_db)):
         token,
         max_age=settings.session_max_age,
         httponly=True,
-        samesite="lax",
+        samesite="strict",
+        path="/admin",
     )
     return response
 
@@ -45,5 +46,5 @@ async def login_submit(request: Request, db: AsyncSession = Depends(get_db)):
 @router.post("/logout")
 async def logout(request: Request):
     response = RedirectResponse(url="/admin/login", status_code=303)
-    response.delete_cookie(session_manager.cookie_name)
+    response.delete_cookie(session_manager.cookie_name, path="/admin")
     return response

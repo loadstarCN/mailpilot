@@ -1,6 +1,7 @@
 import uuid
+from typing import Literal
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..models.project import Project
@@ -23,11 +24,14 @@ async def get_task(
     return task
 
 
+TaskStatus = Literal["pending", "processing", "sent", "failed", "retry", "cancelled"]
+
+
 @router.get("", response_model=TaskListResponse)
 async def list_tasks(
-    status: str | None = None,
-    page: int = 1,
-    page_size: int = 20,
+    status: TaskStatus | None = None,
+    page: int = Query(1, ge=1),
+    page_size: int = Query(20, ge=1, le=100),
     db: AsyncSession = Depends(get_db),
     project: Project = Depends(get_current_project),
 ):

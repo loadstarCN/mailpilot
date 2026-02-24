@@ -24,6 +24,7 @@
     <table class="w-full text-sm">
         <thead class="bg-gray-50 text-gray-600">
             <tr>
+                <th class="px-4 py-3 text-left">项目</th>
                 <th class="px-4 py-3 text-left">收件人</th>
                 <th class="px-4 py-3 text-left">主题</th>
                 <th class="px-4 py-3 text-center">状态</th>
@@ -35,6 +36,7 @@
         <tbody class="divide-y">
             {% for t in tasks %}
             <tr class="hover:bg-gray-50">
+                <td class="px-4 py-3 text-gray-500 text-xs">{{ project_map.get(t.project_id|string, '-') }}</td>
                 <td class="px-4 py-3">{{ t.to_addrs[0] }}{% if t.to_addrs|length > 1 %} +{{ t.to_addrs|length - 1 }}{% endif %}</td>
                 <td class="px-4 py-3">{{ t.subject[:40] }}{{ '...' if t.subject|length > 40 }}</td>
                 <td class="px-4 py-3 text-center">
@@ -68,7 +70,7 @@
             </tr>
             {% endfor %}
             {% if not tasks %}
-            <tr><td colspan="6" class="px-4 py-8 text-center text-gray-400">暂无任务</td></tr>
+            <tr><td colspan="7" class="px-4 py-8 text-center text-gray-400">暂无任务</td></tr>
             {% endif %}
         </tbody>
     </table>

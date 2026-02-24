@@ -2,11 +2,11 @@
 
 ## 环境要求
 
-- Ubuntu 20.04+
+- Ubuntu 22.04+
 - Python 3.11+
-- PostgreSQL 16
-- Nginx
-- PM2 或 systemd（进程管理二选一）
+- PostgreSQL 16（外部服务，需提前准备好连接信息）
+- Nginx（已安装）
+- PM2（已安装）
 
 ---
 
@@ -14,15 +14,12 @@
 
 ```bash
 sudo apt update
-sudo apt install -y python3.11 python3.11-venv python3-pip nginx postgresql
+sudo apt install -y python3.11 python3.11-distutils python3.11-dev build-essential
+/usr/bin/python3.11 --version  # 确认 3.11.x
 ```
 
-创建 PostgreSQL 数据库：
-
-```bash
-sudo -u postgres psql -c "CREATE USER mailpilot WITH PASSWORD 'your-db-password';"
-sudo -u postgres psql -c "CREATE DATABASE mailpilot OWNER mailpilot;"
-```
+> 不修改系统默认 `python3` 指向，避免影响 apt 等系统工具。后续所有命令均使用完整路径 `/usr/bin/python3.11`。
+> `python3.11-dev` 和 `build-essential` 用于编译 `cryptography` 等含 C 扩展的依赖包。
 
 ---
 
@@ -30,53 +27,30 @@ sudo -u postgres psql -c "CREATE DATABASE mailpilot OWNER mailpilot;"
 
 ```bash
 # 创建应用目录
-sudo mkdir -p /opt/mailpilot
-sudo chown $USER:$USER /opt/mailpilot
+sudo mkdir -p /var/www/mailpilot
+sudo chown $USER:$USER /var/www/mailpilot
 
-# 上传代码（本地执行）
-rsync -av --exclude='.git' --exclude='__pycache__' --exclude='.venv' \
-  ./ user@server:/opt/mailpilot/
+# 上传代码至 /var/www/mailpilot/（包含 app/、templates/、static/、migrations/ 等目录）
 
-# 服务器上创建虚拟环境并安装依赖
-cd /opt/mailpilot
-python3.11 -m venv .venv
-source .venv/bin/activate
-pip install -e .
+# 安装依赖
+cd /var/www/mailpilot
+/usr/bin/python3.11 -m pip install .
 
 # 配置环境变量
 cp .env.example .env
 nano .env  # 填写 DATABASE_URL、SECRET_KEY 等
 
-# 运行数据库迁移
-alembic upgrade head
+# 运行数据库迁移（首次部署执行，用于建表）
+/usr/bin/python3.11 -m alembic upgrade head
 ```
 
 ---
 
-## 三、进程管理
-
-### 方案 A：PM2（推荐，适合已有 PM2 环境）
-
-创建 `ecosystem.config.js`：
-
-```js
-module.exports = {
-  apps: [{
-    name: 'mailpilot',
-    script: '/opt/mailpilot/.venv/bin/uvicorn',
-    args: 'app.main:app --host 127.0.0.1 --port 8000',
-    cwd: '/opt/mailpilot',
-    interpreter: 'none',
-    env_file: '/opt/mailpilot/.env',
-    restart_delay: 5000,
-    max_restarts: 10,
-    autorestart: true,
-  }]
-}
-```
+## 三、启动服务（PM2）
 
 ```bash
-pm2 start ecosystem.config.js
+pm2 start "/usr/bin/python3.11 -m uvicorn app.main:app --host 127.0.0.1 --port 8000" \
+  --name mailpilot --cwd /var/www/mailpilot
 pm2 save        # 保存进程列表
 pm2 startup     # 生成开机自启命令，按提示执行输出的 sudo 命令
 ```
@@ -90,34 +64,6 @@ pm2 restart mailpilot
 pm2 stop mailpilot
 ```
 
-### 方案 B：systemd
-
-创建 `/etc/systemd/system/mailpilot.service`：
-
-```ini
-[Unit]
-Description=Mailpilot
-After=network.target postgresql.service
-
-[Service]
-User=www-data
-WorkingDirectory=/opt/mailpilot
-EnvironmentFile=/opt/mailpilot/.env
-ExecStart=/opt/mailpilot/.venv/bin/uvicorn app.main:app --host 127.0.0.1 --port 8000
-Restart=always
-RestartSec=5
-
-[Install]
-WantedBy=multi-user.target
-```
-
-```bash
-sudo chown -R www-data:www-data /opt/mailpilot
-sudo systemctl daemon-reload
-sudo systemctl enable --now mailpilot
-sudo systemctl status mailpilot
-```
-
 ---
 
 ## 四、Nginx 配置
@@ -127,7 +73,7 @@ sudo systemctl status mailpilot
 ```nginx
 server {
     listen 80;
-    server_name your-domain.com;  # 替换为实际域名或 IP
+    server_name your-domain.com;
 
     location / {
         proxy_pass http://127.0.0.1:8000;
@@ -168,20 +114,13 @@ sudo certbot --nginx -d your-domain.com
 ## 六、更新部署
 
 ```bash
-# 上传新代码
-rsync -av --exclude='.git' --exclude='__pycache__' --exclude='.venv' \
-  ./ user@server:/opt/mailpilot/
+# 上传新代码至 /var/www/mailpilot/
 
 # 服务器上执行
-cd /opt/mailpilot
-source .venv/bin/activate
-pip install -e .           # 如有新依赖
-alembic upgrade head       # 如有新迁移
-
-# 重启服务
-pm2 restart mailpilot      # PM2 方案
-# 或
-sudo systemctl restart mailpilot  # systemd 方案
+cd /var/www/mailpilot
+/usr/bin/python3.11 -m pip install .           # 如有新依赖
+/usr/bin/python3.11 -m alembic upgrade head    # 如有新迁移
+pm2 restart mailpilot
 ```
 
 ---
@@ -189,9 +128,5 @@ sudo systemctl restart mailpilot  # systemd 方案
 ## 七、查看日志
 
 ```bash
-# PM2
 pm2 logs mailpilot
-
-# systemd
-sudo journalctl -u mailpilot -f
 ```

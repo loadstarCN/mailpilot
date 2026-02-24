@@ -1,4 +1,5 @@
 import uuid
+from datetime import datetime, timezone
 
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -19,7 +20,7 @@ async def authenticate(
     admin = result.scalar_one_or_none()
     if not admin or not verify_password(password, admin.password_hash):
         return None
-    admin.last_login_at = func.now()
+    admin.last_login_at = datetime.now(timezone.utc)
     await db.commit()
     return admin
 

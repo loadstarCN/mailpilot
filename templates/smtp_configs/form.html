@@ -61,9 +61,13 @@
                    class="w-full px-3 py-2 border rounded-md">
         </div>
         <div class="flex gap-4">
-            <label class="flex items-center">
+            <label class="flex items-center" title="STARTTLS，端口 587">
                 <input type="checkbox" name="use_tls" class="mr-2" {{ 'checked' if not config or config.use_tls }}>
-                <span class="text-sm text-gray-700">使用 TLS</span>
+                <span class="text-sm text-gray-700">STARTTLS（587）</span>
+            </label>
+            <label class="flex items-center" title="隐式 SSL，端口 465">
+                <input type="checkbox" name="use_ssl" class="mr-2" {{ 'checked' if config and config.use_ssl }}>
+                <span class="text-sm text-gray-700">SSL（465）</span>
             </label>
             <label class="flex items-center">
                 <input type="checkbox" name="is_default" class="mr-2" {{ 'checked' if config and config.is_default }}>

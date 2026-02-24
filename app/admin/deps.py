@@ -1,3 +1,5 @@
+from urllib.parse import quote, unquote
+
 from fastapi import Depends, Request, Response
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -33,12 +35,14 @@ class _RedirectToLogin(Exception):
 
 
 def set_flash(response: Response, message: str, category: str = "success") -> None:
-    response.set_cookie("mp_flash", f"{category}:{message}", max_age=10, httponly=True)
+    # URL 编码，避免中文等非 latin-1 字符导致 cookie 编码错误
+    encoded = quote(f"{category}:{message}", safe=":")
+    response.set_cookie("mp_flash", encoded, max_age=10, httponly=True)
 
 
 def get_flash(request: Request) -> tuple[str, str] | None:
     value = request.cookies.get("mp_flash")
     if value and ":" in value:
-        category, message = value.split(":", 1)
+        category, message = unquote(value).split(":", 1)
         return category, message
     return None

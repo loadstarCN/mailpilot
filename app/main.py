@@ -4,6 +4,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request
 from fastapi.responses import RedirectResponse
 from fastapi.staticfiles import StaticFiles
+from starlette.middleware.base import BaseHTTPMiddleware
 
 from .admin import admin_router
 from .admin.deps import _RedirectToLogin
@@ -13,6 +14,15 @@ from .db.session import close_db, init_db
 from .services.admin_service import ensure_default_admin
 from .worker.loop import worker_loop
 from .worker.state import worker_state
+
+
+class SecurityHeadersMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request: Request, call_next):
+        response = await call_next(request)
+        response.headers["X-Content-Type-Options"] = "nosniff"
+        response.headers["X-Frame-Options"] = "SAMEORIGIN"
+        response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+        return response
 
 
 @asynccontextmanager
@@ -37,7 +47,15 @@ async def lifespan(app: FastAPI):
     await close_db()
 
 
-app = FastAPI(title="Mailpilot", version="0.1.0", lifespan=lifespan)
+app = FastAPI(
+    title="Mailpilot",
+    version="0.1.0",
+    lifespan=lifespan,
+    # 生产环境禁用交互式文档，避免暴露 API 结构
+    docs_url=None,
+    redoc_url=None,
+)
+app.add_middleware(SecurityHeadersMiddleware)
 app.include_router(api_router)
 app.include_router(admin_router)
 app.mount("/static", StaticFiles(directory="static"), name="static")

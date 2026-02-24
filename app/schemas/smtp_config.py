@@ -11,6 +11,7 @@ class SmtpConfigCreate(BaseModel):
     username: str
     password: str
     use_tls: bool = True
+    use_ssl: bool = False
     from_email: EmailStr
     from_name: str | None = None
     max_per_hour: int = 100
@@ -24,6 +25,7 @@ class SmtpConfigUpdate(BaseModel):
     username: str | None = None
     password: str | None = None
     use_tls: bool | None = None
+    use_ssl: bool | None = None
     from_email: str | None = None
     from_name: str | None = None
     max_per_hour: int | None = None
@@ -39,6 +41,7 @@ class SmtpConfigResponse(BaseModel):
     port: int
     username: str
     use_tls: bool
+    use_ssl: bool
     from_email: str
     from_name: str | None
     max_per_hour: int

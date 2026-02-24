@@ -44,12 +44,16 @@ async def send_email(
 
     password = decrypt_password(smtp_config.password)
 
+    # use_ssl=True → 隐式 SSL（端口 465）
+    # use_tls=True → STARTTLS（端口 587）
+    # 两者均 False → 明文
     await aiosmtplib.send(
         msg,
         hostname=smtp_config.host,
         port=smtp_config.port,
         username=smtp_config.username,
         password=password,
-        use_tls=smtp_config.use_tls,
+        use_tls=smtp_config.use_ssl,
+        start_tls=smtp_config.use_tls and not smtp_config.use_ssl,
         recipients=all_recipients,
     )

@@ -18,26 +18,14 @@ async def _resolve_smtp_config(
 ) -> uuid.UUID | None:
     if not smtp_config_ref:
         return None
-    # 尝试按 UUID 查找
     try:
         config_id = uuid.UUID(smtp_config_ref)
-        config = await db.get(SmtpConfig, config_id)
-        if config and config.project_id == project.id:
-            return config.id
     except ValueError:
-        pass
-    # 按 name 查找
-    result = await db.execute(
-        select(SmtpConfig).where(
-            SmtpConfig.project_id == project.id,
-            SmtpConfig.name == smtp_config_ref,
-            SmtpConfig.is_active.is_(True),
-        )
-    )
-    config = result.scalar_one_or_none()
-    if config:
-        return config.id
-    raise HTTPException(status_code=400, detail=f"SMTP 配置 '{smtp_config_ref}' 不存在")
+        raise HTTPException(status_code=400, detail="smtp_config 必须是有效的 UUID")
+    config = await db.get(SmtpConfig, config_id)
+    if not config or config.project_id != project.id:
+        raise HTTPException(status_code=400, detail=f"SMTP 配置 '{smtp_config_ref}' 不存在")
+    return config.id
 
 
 @router.post("/send", response_model=SendResponse)
@@ -64,7 +52,7 @@ async def send_email(
         priority=req.priority,
         max_retries=req.max_retries,
         smtp_config_id=smtp_config_id,
-        webhook_url=req.webhook_url,
+        webhook_url=str(req.webhook_url) if req.webhook_url else None,
         scheduled_at=req.scheduled_at,
     )
     return SendResponse(task_id=task.id, status=task.status)
@@ -96,7 +84,7 @@ async def send_with_template(
         priority=req.priority,
         max_retries=req.max_retries,
         smtp_config_id=smtp_config_id,
-        webhook_url=req.webhook_url,
+        webhook_url=str(req.webhook_url) if req.webhook_url else None,
         scheduled_at=req.scheduled_at,
     )
     return SendResponse(task_id=task.id, status=task.status)

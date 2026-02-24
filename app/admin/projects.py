@@ -48,7 +48,7 @@ async def project_create_submit(
     admin: Admin = Depends(get_current_admin),
 ):
     form = await request.form()
-    await project_service.create_project(db, name=form["name"])
+    await project_service.create_project(db, name=form.get("name", ""))
     response = RedirectResponse(url="/admin/projects", status_code=303)
     set_flash(response, "项目创建成功")
     return response
