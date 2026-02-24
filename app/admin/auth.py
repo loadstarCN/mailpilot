@@ -37,6 +37,7 @@ async def login_submit(request: Request, db: AsyncSession = Depends(get_db)):
         token,
         max_age=settings.session_max_age,
         httponly=True,
+        secure=True,
         samesite="strict",
         path="/admin",
     )

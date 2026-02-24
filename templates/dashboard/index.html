@@ -1,11 +1,11 @@
 {% extends "base.html" %}
 {% set active_page = "dashboard" %}
-{% block title %}Dashboard - Mailpilot{% endblock %}
+{% block title %}仪表盘 - Mailpilot{% endblock %}
 {% block head %}
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
 {% endblock %}
 {% block content %}
-<h2 class="text-2xl font-bold mb-6">Dashboard</h2>
+<h2 class="text-2xl font-bold mb-6">仪表盘</h2>
 
 <!-- 概览卡片 -->
 <div class="grid grid-cols-3 gap-4 mb-6">
@@ -26,9 +26,9 @@
     <div class="bg-white rounded-lg shadow p-5">
         <h3 class="text-sm text-gray-500 mb-3">队列状态</h3>
         <div class="space-y-2">
-            {% for status in ['pending', 'processing', 'retry', 'sent', 'failed', 'cancelled'] %}
+            {% for status, label in [('pending', '待发送'), ('processing', '发送中'), ('retry', '重试中'), ('sent', '已发送'), ('failed', '失败'), ('cancelled', '已取消')] %}
             <div class="flex justify-between text-sm">
-                <span>{{ status }}</span>
+                <span>{{ label }}</span>
                 <span class="font-medium">{{ queue_depth.get(status, 0) }}</span>
             </div>
             {% endfor %}

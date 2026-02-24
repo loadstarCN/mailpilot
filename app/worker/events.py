@@ -17,22 +17,26 @@ class SendEvent:
 class EventBus:
     def __init__(self):
         self._subscribers: list[asyncio.Queue] = []
+        self._lock = asyncio.Lock()
 
-    def subscribe(self) -> asyncio.Queue:
+    async def subscribe(self) -> asyncio.Queue:
         q: asyncio.Queue = asyncio.Queue(maxsize=256)
-        self._subscribers.append(q)
+        async with self._lock:
+            self._subscribers.append(q)
         return q
 
-    def unsubscribe(self, q: asyncio.Queue) -> None:
-        if q in self._subscribers:
-            self._subscribers.remove(q)
+    async def unsubscribe(self, q: asyncio.Queue) -> None:
+        async with self._lock:
+            if q in self._subscribers:
+                self._subscribers.remove(q)
 
     async def publish(self, event: SendEvent) -> None:
-        for q in self._subscribers:
-            try:
-                q.put_nowait(event)
-            except asyncio.QueueFull:
-                pass  # 丢弃，防止慢消费者拖垮系统
+        async with self._lock:
+            for q in self._subscribers:
+                try:
+                    q.put_nowait(event)
+                except asyncio.QueueFull:
+                    pass  # 丢弃，防止慢消费者拖垮系统
 
 
 event_bus = EventBus()

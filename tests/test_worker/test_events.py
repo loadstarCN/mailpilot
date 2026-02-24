@@ -11,7 +11,7 @@ class TestEventBus:
     @pytest.mark.asyncio
     async def test_subscribe_and_publish(self):
         bus = EventBus()
-        queue = bus.subscribe()
+        queue = await bus.subscribe()
 
         event = SendEvent(
             task_id="123",
@@ -29,8 +29,8 @@ class TestEventBus:
     @pytest.mark.asyncio
     async def test_multiple_subscribers(self):
         bus = EventBus()
-        q1 = bus.subscribe()
-        q2 = bus.subscribe()
+        q1 = await bus.subscribe()
+        q2 = await bus.subscribe()
 
         event = SendEvent(
             task_id="456",
@@ -48,8 +48,8 @@ class TestEventBus:
     @pytest.mark.asyncio
     async def test_unsubscribe(self):
         bus = EventBus()
-        q = bus.subscribe()
-        bus.unsubscribe(q)
+        q = await bus.subscribe()
+        await bus.unsubscribe(q)
 
         event = SendEvent(
             task_id="789",
@@ -66,13 +66,13 @@ class TestEventBus:
     async def test_unsubscribe_nonexistent_is_safe(self):
         bus = EventBus()
         q = asyncio.Queue()
-        bus.unsubscribe(q)  # 不应抛异常
+        await bus.unsubscribe(q)  # 不应抛异常
 
     @pytest.mark.asyncio
     async def test_full_queue_does_not_block(self):
         """队列满时不阻塞，事件被丢弃"""
         bus = EventBus()
-        q = bus.subscribe()  # maxsize=256
+        q = await bus.subscribe()  # maxsize=256
 
         # 填满队列
         for i in range(256):

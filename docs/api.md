@@ -48,12 +48,12 @@ API Key 与项目绑定，所有操作（发送、查询、模板管理）均在
 
 | 字段 | 类型 | 必填 | 说明 |
 |------|------|------|------|
-| `to` | `string[]` | ✅ | 收件人列表，合法邮箱地址 |
-| `subject` | `string` | ✅ | 邮件主题 |
-| `body_html` | `string` | ⚠️ | HTML 正文（与 `body_text` 至少填一个） |
-| `body_text` | `string` | ⚠️ | 纯文本正文 |
-| `cc` | `string[]` | ❌ | 抄送列表 |
-| `bcc` | `string[]` | ❌ | 密送列表 |
+| `to` | `string[]` | ✅ | 收件人列表，合法邮箱地址，1~50 个 |
+| `subject` | `string` | ✅ | 邮件主题，最长 500 字符 |
+| `body_html` | `string` | ⚠️ | HTML 正文（与 `body_text` 至少填一个），最大 512KB |
+| `body_text` | `string` | ⚠️ | 纯文本正文，最大 512KB |
+| `cc` | `string[]` | ❌ | 抄送列表，最多 50 个 |
+| `bcc` | `string[]` | ❌ | 密送列表，最多 50 个 |
 | `reply_to` | `string` | ❌ | 回复地址 |
 | `priority` | `integer` | ❌ | 优先级，数字越大越优先，默认 `0`，范围 `0~100` |
 | `max_retries` | `integer` | ❌ | 最大重试次数，默认 `3`，范围 `0~10` |
@@ -96,11 +96,11 @@ API Key 与项目绑定，所有操作（发送、查询、模板管理）均在
 
 | 字段 | 类型 | 必填 | 说明 |
 |------|------|------|------|
-| `to` | `string[]` | ✅ | 收件人列表 |
+| `to` | `string[]` | ✅ | 收件人列表，1~50 个 |
 | `template` | `string` | ✅ | 模板名称（在管理界面查看） |
 | `variables` | `object` | ❌ | 模板变量键值对，默认 `{}` |
-| `cc` | `string[]` | ❌ | 抄送列表 |
-| `bcc` | `string[]` | ❌ | 密送列表 |
+| `cc` | `string[]` | ❌ | 抄送列表，最多 50 个 |
+| `bcc` | `string[]` | ❌ | 密送列表，最多 50 个 |
 | `reply_to` | `string` | ❌ | 回复地址 |
 | `priority` | `integer` | ❌ | 优先级，默认 `0`，范围 `0~100` |
 | `max_retries` | `integer` | ❌ | 最大重试次数，默认 `3`，范围 `0~10` |

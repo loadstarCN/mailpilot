@@ -35,7 +35,7 @@ async def monitoring_sse(
     admin: Admin = Depends(get_current_admin),
 ):
     async def event_stream():
-        queue = event_bus.subscribe()
+        queue = await event_bus.subscribe()
         try:
             while True:
                 if await request.is_disconnected():
@@ -55,7 +55,7 @@ async def monitoring_sse(
                 except asyncio.TimeoutError:
                     yield "event: heartbeat\ndata: \n\n"
         finally:
-            event_bus.unsubscribe(queue)
+            await event_bus.unsubscribe(queue)
 
     return StreamingResponse(event_stream(), media_type="text/event-stream")
 

@@ -113,9 +113,27 @@ async function loadQueueDepth() {
         const resp = await fetch('/admin/monitoring/api/queue-depth');
         const data = await resp.json();
         const el = document.getElementById('queue-depth');
-        el.innerHTML = Object.entries(data).map(([k, v]) =>
-            `<div class="flex justify-between"><span>${k}</span><span class="font-medium">${v}</span></div>`
-        ).join('') || '<p class="text-gray-400">空</p>';
+        el.textContent = '';
+        const entries = Object.entries(data);
+        if (entries.length === 0) {
+            const p = document.createElement('p');
+            p.className = 'text-gray-400';
+            p.textContent = '空';
+            el.appendChild(p);
+        } else {
+            entries.forEach(([k, v]) => {
+                const row = document.createElement('div');
+                row.className = 'flex justify-between';
+                const sk = document.createElement('span');
+                sk.textContent = k;
+                const sv = document.createElement('span');
+                sv.className = 'font-medium';
+                sv.textContent = v;
+                row.appendChild(sk);
+                row.appendChild(sv);
+                el.appendChild(row);
+            });
+        }
     } catch (e) {}
 }
 
@@ -129,11 +147,19 @@ source.addEventListener('send_event', function(e) {
     const time = new Date(event.timestamp).toLocaleTimeString('zh-CN');
     const div = document.createElement('div');
     div.className = 'text-sm border-b pb-2';
-    div.innerHTML = `<span class="text-gray-400">${time}</span>
-        <span class="${statusClass} font-medium ml-2">${event.status}</span>
-        <span class="ml-2">${event.project}</span>
-        <span class="text-gray-500 ml-1">→ ${event.to}</span>
-        <span class="text-gray-400 ml-2 text-xs">${event.subject.substring(0, 30)}</span>`;
+    const spans = [
+        ['text-gray-400', time],
+        [`${statusClass} font-medium ml-2`, event.status],
+        ['ml-2', event.project],
+        ['text-gray-500 ml-1', '→ ' + event.to],
+        ['text-gray-400 ml-2 text-xs', event.subject.substring(0, 30)],
+    ];
+    spans.forEach(([cls, txt]) => {
+        const s = document.createElement('span');
+        s.className = cls;
+        s.textContent = txt;
+        div.appendChild(s);
+    });
     feed.insertBefore(div, feed.firstChild);
     if (feed.children.length > 50) feed.removeChild(feed.lastChild);
 

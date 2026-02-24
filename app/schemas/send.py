@@ -5,13 +5,13 @@ from pydantic import AnyHttpUrl, BaseModel, EmailStr, Field, field_validator
 
 
 class SendRequest(BaseModel):
-    to: list[EmailStr]
-    cc: list[EmailStr] | None = None
-    bcc: list[EmailStr] | None = None
+    to: list[EmailStr] = Field(min_length=1, max_length=50)
+    cc: list[EmailStr] | None = Field(None, max_length=50)
+    bcc: list[EmailStr] | None = Field(None, max_length=50)
     reply_to: EmailStr | None = None
-    subject: str
-    body_html: str | None = None
-    body_text: str | None = None
+    subject: str = Field(min_length=1, max_length=500)
+    body_html: str | None = Field(None, max_length=512000)
+    body_text: str | None = Field(None, max_length=512000)
     priority: int = Field(0, ge=0, le=100)
     max_retries: int = Field(3, ge=0, le=10)
     smtp_config: str | None = None  # SMTP 配置的 UUID，不传则使用项目默认
@@ -25,9 +25,9 @@ class SendRequest(BaseModel):
 
 
 class SendTemplateRequest(BaseModel):
-    to: list[EmailStr]
-    cc: list[EmailStr] | None = None
-    bcc: list[EmailStr] | None = None
+    to: list[EmailStr] = Field(min_length=1, max_length=50)
+    cc: list[EmailStr] | None = Field(None, max_length=50)
+    bcc: list[EmailStr] | None = Field(None, max_length=50)
     reply_to: EmailStr | None = None
     template: str
     variables: dict = {}

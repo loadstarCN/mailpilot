@@ -6,10 +6,12 @@
     <title>Mailpilot - 登录</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-gray-100 min-h-screen flex items-center justify-center">
+<body class="bg-gray-100 min-h-screen flex flex-col items-center justify-center">
 <div class="bg-white p-8 rounded-lg shadow-md w-96">
-    <h1 class="text-2xl font-bold text-center mb-2">Mailpilot</h1>
-    <p class="text-gray-500 text-center text-sm mb-6">邮件发送管理系统</p>
+    <div class="text-center mb-6">
+        <h1 class="text-2xl font-bold"><span class="text-green-700">Olive</span> Mailpilot</h1>
+        <p class="text-gray-500 text-sm mt-1">邮件发送管理系统</p>
+    </div>
     {% if error %}
     <div class="bg-red-100 text-red-700 p-3 rounded text-sm mb-4">{{ error }}</div>
     {% endif %}
@@ -30,5 +32,8 @@
         </button>
     </form>
 </div>
+<footer class="mt-6 text-center text-xs text-gray-400">
+    &copy; Olive Software. All rights reserved. &middot; <a href="mailto:support@olive-app.com" class="hover:text-gray-600">support@olive-app.com</a>
+</footer>
 </body>
 </html>

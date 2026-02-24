@@ -142,6 +142,20 @@ async def template_delete(
     return response
 
 
+@router.get("/{template_id}/preview", response_class=HTMLResponse)
+async def template_preview_raw(
+    template_id: uuid.UUID,
+    request: Request,
+    db: AsyncSession = Depends(get_db),
+    admin: Admin = Depends(get_current_admin),
+):
+    """原始预览：保留 {{ }} 占位符，不做变量替换"""
+    tpl = await template_service.get_template(db, template_id)
+    if not tpl:
+        return HTMLResponse("<p>模板不存在</p>", status_code=404)
+    return HTMLResponse(tpl.body_html)
+
+
 @router.post("/{template_id}/preview")
 async def template_preview(
     template_id: uuid.UUID,

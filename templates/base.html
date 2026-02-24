@@ -12,12 +12,12 @@
 <div class="flex">
     <aside class="w-60 bg-gray-900 text-gray-300 min-h-screen fixed">
         <div class="p-5">
-            <h1 class="text-xl font-bold text-white">Mailpilot</h1>
+            <h1 class="text-xl font-bold"><span class="text-green-400">Olive</span> <span class="text-white">Mailpilot</span></h1>
             <p class="text-xs text-gray-500 mt-1">邮件发送管理</p>
         </div>
         <nav class="mt-2">
             <a href="/admin/dashboard" class="flex items-center px-5 py-2.5 text-sm hover:bg-gray-800 hover:text-white {% if active_page == 'dashboard' %}bg-gray-800 text-white{% endif %}">
-                <span class="mr-3">&#9632;</span> Dashboard
+                <span class="mr-3">&#9632;</span> 仪表盘
             </a>
             <a href="/admin/projects" class="flex items-center px-5 py-2.5 text-sm hover:bg-gray-800 hover:text-white {% if active_page == 'projects' %}bg-gray-800 text-white{% endif %}">
                 <span class="mr-3">&#9632;</span> 项目管理
@@ -35,11 +35,29 @@
                 <span class="mr-3">&#9632;</span> 监控
             </a>
         </nav>
-        <div class="absolute bottom-0 w-full p-4 border-t border-gray-800">
-            <div class="flex items-center justify-between text-sm">
-                <a href="/admin/account/change-password" class="hover:text-white">{{ admin.username }}</a>
-                <form method="post" action="/admin/logout">
-                    <button type="submit" class="text-gray-500 hover:text-white">退出</button>
+        <div class="absolute bottom-0 w-full border-t border-gray-800">
+            <div class="flex items-center gap-2 px-4 py-3">
+                <div class="w-8 h-8 rounded-full bg-gray-700 flex items-center justify-center text-white text-xs font-medium flex-shrink-0">
+                    {{ admin.username[0]|upper }}
+                </div>
+                <div class="flex-1 min-w-0">
+                    <div class="text-sm text-gray-200 truncate">{{ admin.username }}</div>
+                </div>
+                <a href="/admin/account/change-password" title="修改密码"
+                   class="p-1.5 text-gray-500 hover:text-white hover:bg-gray-800 rounded transition-colors flex-shrink-0">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                    </svg>
+                </a>
+                <form method="post" action="/admin/logout" class="flex-shrink-0">
+                    <input type="hidden" name="_csrf_token" value="{{ request.state.csrf_token }}">
+                    <button type="submit" title="退出登录"
+                            class="p-1.5 text-gray-500 hover:text-white hover:bg-gray-800 rounded transition-colors">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+                        </svg>
+                    </button>
                 </form>
             </div>
         </div>
@@ -56,8 +74,15 @@
 {% block content %}{% endblock %}
 
 {% if admin is defined and admin %}
+        <footer class="mt-8 py-4 text-center text-xs text-gray-400">
+            &copy; Olive Software. All rights reserved. &middot; <a href="mailto:support@olive-app.com" class="hover:text-gray-600">support@olive-app.com</a>
+        </footer>
     </main>
 </div>
+{% else %}
+<footer class="py-4 text-center text-xs text-gray-400">
+    &copy; Olive Software. All rights reserved. &middot; <a href="mailto:support@olive-app.com" class="hover:text-gray-600">support@olive-app.com</a>
+</footer>
 {% endif %}
 {% block scripts %}{% endblock %}
 </body>

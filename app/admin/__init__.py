@@ -1,8 +1,9 @@
-from fastapi import APIRouter, Request
+from fastapi import APIRouter, Depends, Request
 from fastapi.responses import RedirectResponse
 
 from .account import router as account_router
 from .auth import router as auth_router
+from .csrf import csrf_protect
 from .dashboard import router as dashboard_router
 from .deps import _RedirectToLogin
 from .email_templates import router as email_templates_router
@@ -11,7 +12,7 @@ from .projects import router as projects_router
 from .smtp_configs import router as smtp_configs_router
 from .tasks import router as tasks_router
 
-admin_router = APIRouter(prefix="/admin")
+admin_router = APIRouter(prefix="/admin", dependencies=[Depends(csrf_protect)])
 admin_router.include_router(auth_router)
 admin_router.include_router(dashboard_router)
 admin_router.include_router(projects_router)

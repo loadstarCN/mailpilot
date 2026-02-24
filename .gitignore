@@ -58,3 +58,9 @@ logs/
 # Uploads / temp files
 tmp/
 temp/
+
+# Claude Code
+.claude/
+
+# Playwright MCP
+.playwright-mcp/

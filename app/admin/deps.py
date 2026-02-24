@@ -37,7 +37,7 @@ class _RedirectToLogin(Exception):
 def set_flash(response: Response, message: str, category: str = "success") -> None:
     # URL 编码，避免中文等非 latin-1 字符导致 cookie 编码错误
     encoded = quote(f"{category}:{message}", safe=":")
-    response.set_cookie("mp_flash", encoded, max_age=10, httponly=True)
+    response.set_cookie("mp_flash", encoded, max_age=10, httponly=True, secure=True)
 
 
 def get_flash(request: Request) -> tuple[str, str] | None:
