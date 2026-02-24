@@ -65,6 +65,7 @@
 let trendChart = null;
 let rtSuccess = 0;
 let rtFailed = 0;
+const statusLabels = {pending: '待发送', processing: '发送中', sent: '已发送', failed: '失败', retry: '重试中', cancelled: '已取消'};
 
 async function loadTrend(period) {
     const resp = await fetch(`/admin/monitoring/api/trend?period=${period}`);
@@ -125,7 +126,7 @@ async function loadQueueDepth() {
                 const row = document.createElement('div');
                 row.className = 'flex justify-between';
                 const sk = document.createElement('span');
-                sk.textContent = k;
+                sk.textContent = statusLabels[k] || k;
                 const sv = document.createElement('span');
                 sv.className = 'font-medium';
                 sv.textContent = v;
@@ -149,7 +150,7 @@ source.addEventListener('send_event', function(e) {
     div.className = 'text-sm border-b pb-2';
     const spans = [
         ['text-gray-400', time],
-        [`${statusClass} font-medium ml-2`, event.status],
+        [`${statusClass} font-medium ml-2`, statusLabels[event.status] || event.status],
         ['ml-2', event.project],
         ['text-gray-500 ml-1', '→ ' + event.to],
         ['text-gray-400 ml-2 text-xs', event.subject.substring(0, 30)],

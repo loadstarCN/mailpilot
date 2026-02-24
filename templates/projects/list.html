@@ -107,8 +107,18 @@ function toggleKey(id, fullKey) {
     eyeOff.classList.toggle('hidden', !isHidden);
 }
 
+function fallbackCopy(text) {
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.cssText = 'position:fixed;left:-9999px';
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+}
+
 function copyKey(id, fullKey) {
-    navigator.clipboard.writeText(fullKey).then(() => {
+    const done = () => {
         const copy = document.getElementById('copy-' + id);
         const check = document.getElementById('check-' + id);
         copy.classList.add('hidden');
@@ -117,7 +127,13 @@ function copyKey(id, fullKey) {
             copy.classList.remove('hidden');
             check.classList.add('hidden');
         }, 1500);
-    });
+    };
+    if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(fullKey).then(done);
+    } else {
+        fallbackCopy(fullKey);
+        done();
+    }
 }
 </script>
 {% endblock %}

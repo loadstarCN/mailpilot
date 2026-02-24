@@ -100,9 +100,20 @@
 </div>
 
 <script>
+function fallbackCopy(text) {
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.cssText = 'position:fixed;left:-9999px';
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+}
+
 function copyUuid(id) {
     const code = document.getElementById('uuid-' + id);
-    navigator.clipboard.writeText(code.textContent.trim()).then(() => {
+    const text = code.textContent.trim();
+    const done = () => {
         const copyIcon = document.getElementById('copy-icon-' + id);
         const checkIcon = document.getElementById('check-icon-' + id);
         copyIcon.classList.add('hidden');
@@ -111,7 +122,13 @@ function copyUuid(id) {
             copyIcon.classList.remove('hidden');
             checkIcon.classList.add('hidden');
         }, 1500);
-    });
+    };
+    if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(text).then(done);
+    } else {
+        fallbackCopy(text);
+        done();
+    }
 }
 </script>
 {% endblock %}
