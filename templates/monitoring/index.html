@@ -87,7 +87,7 @@ async function loadTrend(period) {
                 {label: '总数', data: data.map(d => d.total), borderColor: '#6b7280', borderDash: [5,5], tension: 0.3, fill: false},
             ]
         },
-        options: {responsive: true, plugins: {legend: {position: 'bottom'}}}
+        options: {responsive: true, scales: {y: {beginAtZero: true}}, plugins: {legend: {position: 'bottom'}}}
     });
 
     document.querySelectorAll('[id^=btn-]').forEach(b => b.classList.remove('bg-blue-100'));

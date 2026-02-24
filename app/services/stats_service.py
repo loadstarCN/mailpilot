@@ -65,31 +65,43 @@ async def get_overview(db: AsyncSession, project_id: uuid.UUID | None = None) ->
 async def get_trend(
     db: AsyncSession, period: str = "day", project_id: uuid.UUID | None = None
 ) -> list[dict]:
+    # 根据周期确定时间截断粒度和 generate_series 参数
     if period == "day":
-        trunc = func.date_trunc("hour", EmailTask.created_at)
-        start_expr = func.now() - text("interval '24 hours'")
+        trunc_unit = "hour"
+        series_start = "date_trunc('hour', now()) - interval '23 hours'"
+        series_end = "date_trunc('hour', now())"
+        series_step = "interval '1 hour'"
     elif period == "week":
-        trunc = func.date_trunc("day", EmailTask.created_at)
-        start_expr = func.now() - text("interval '7 days'")
+        trunc_unit = "day"
+        series_start = "date_trunc('day', now()) - interval '6 days'"
+        series_end = "date_trunc('day', now())"
+        series_step = "interval '1 day'"
     else:
-        trunc = func.date_trunc("day", EmailTask.created_at)
-        start_expr = func.now() - text("interval '30 days'")
+        trunc_unit = "day"
+        series_start = "date_trunc('day', now()) - interval '29 days'"
+        series_end = "date_trunc('day', now())"
+        series_step = "interval '1 day'"
 
-    stmt = (
-        select(
-            trunc.label("time_bucket"),
-            func.count().label("total"),
-            func.count().filter(EmailTask.status == "sent").label("success"),
-            func.count().filter(EmailTask.status == "failed").label("failed"),
-        )
-        .where(EmailTask.created_at >= start_expr)
-        .group_by(text("1"))
-        .order_by(text("1"))
-    )
-    if project_id:
-        stmt = stmt.where(EmailTask.project_id == project_id)
+    project_filter = "AND t.project_id = :project_id" if project_id else ""
 
-    result = await db.execute(stmt)
+    sql = text(f"""
+        SELECT
+            gs.bucket AS time_bucket,
+            COUNT(t.id) AS total,
+            COUNT(t.id) FILTER (WHERE t.status = 'sent') AS success,
+            COUNT(t.id) FILTER (WHERE t.status = 'failed') AS failed
+        FROM generate_series(
+            {series_start}, {series_end}, {series_step}
+        ) AS gs(bucket)
+        LEFT JOIN email_tasks t
+            ON date_trunc('{trunc_unit}', t.created_at) = gs.bucket
+            {project_filter}
+        GROUP BY gs.bucket
+        ORDER BY gs.bucket
+    """)
+
+    params = {"project_id": project_id} if project_id else {}
+    result = await db.execute(sql, params)
     return [
         {
             "time_bucket": str(row.time_bucket),
