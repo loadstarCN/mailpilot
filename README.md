@@ -58,7 +58,7 @@ alembic upgrade head
 uvicorn app.main:app --host 0.0.0.0 --port 8000
 ```
 
-systemd 部署方式参见 [docs/mailpilot-design.md](docs/mailpilot-design.md#部署方式)。
+生产部署（Nginx + PM2/systemd）参见 [docs/deployment.md](docs/deployment.md)。
 
 ## API 使用
 

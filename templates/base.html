@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Mailpilot{% endblock %}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    {% block head %}{% endblock %}
+</head>
+<body class="bg-gray-50 min-h-screen">
+{% if admin is defined and admin %}
+<div class="flex">
+    <aside class="w-60 bg-gray-900 text-gray-300 min-h-screen fixed">
+        <div class="p-5">
+            <h1 class="text-xl font-bold text-white">Mailpilot</h1>
+            <p class="text-xs text-gray-500 mt-1">邮件发送管理</p>
+        </div>
+        <nav class="mt-2">
+            <a href="/admin/dashboard" class="flex items-center px-5 py-2.5 text-sm hover:bg-gray-800 hover:text-white {% if active_page == 'dashboard' %}bg-gray-800 text-white{% endif %}">
+                <span class="mr-3">&#9632;</span> Dashboard
+            </a>
+            <a href="/admin/projects" class="flex items-center px-5 py-2.5 text-sm hover:bg-gray-800 hover:text-white {% if active_page == 'projects' %}bg-gray-800 text-white{% endif %}">
+                <span class="mr-3">&#9632;</span> 项目管理
+            </a>
+            <a href="/admin/smtp-configs" class="flex items-center px-5 py-2.5 text-sm hover:bg-gray-800 hover:text-white {% if active_page == 'smtp_configs' %}bg-gray-800 text-white{% endif %}">
+                <span class="mr-3">&#9632;</span> SMTP 配置
+            </a>
+            <a href="/admin/templates" class="flex items-center px-5 py-2.5 text-sm hover:bg-gray-800 hover:text-white {% if active_page == 'templates' %}bg-gray-800 text-white{% endif %}">
+                <span class="mr-3">&#9632;</span> 邮件模板
+            </a>
+            <a href="/admin/tasks" class="flex items-center px-5 py-2.5 text-sm hover:bg-gray-800 hover:text-white {% if active_page == 'tasks' %}bg-gray-800 text-white{% endif %}">
+                <span class="mr-3">&#9632;</span> 任务列表
+            </a>
+            <a href="/admin/monitoring" class="flex items-center px-5 py-2.5 text-sm hover:bg-gray-800 hover:text-white {% if active_page == 'monitoring' %}bg-gray-800 text-white{% endif %}">
+                <span class="mr-3">&#9632;</span> 监控
+            </a>
+        </nav>
+        <div class="absolute bottom-0 w-full p-4 border-t border-gray-800">
+            <div class="flex items-center justify-between text-sm">
+                <a href="/admin/account/change-password" class="hover:text-white">{{ admin.username }}</a>
+                <form method="post" action="/admin/logout">
+                    <button type="submit" class="text-gray-500 hover:text-white">退出</button>
+                </form>
+            </div>
+        </div>
+    </aside>
+    <main class="ml-60 flex-1 p-6 min-h-screen">
+        {% if flash %}
+        <div class="mb-4 p-3 rounded text-sm {% if flash.0 == 'error' %}bg-red-100 text-red-700{% else %}bg-green-100 text-green-700{% endif %}" id="flash-msg">
+            {{ flash.1 }}
+        </div>
+        <script>setTimeout(() => document.getElementById('flash-msg')?.remove(), 3000)</script>
+        {% endif %}
+{% endif %}
+
+{% block content %}{% endblock %}
+
+{% if admin is defined and admin %}
+    </main>
+</div>
+{% endif %}
+{% block scripts %}{% endblock %}
+</body>
+</html>

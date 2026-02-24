@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% set active_page = "projects" %}
+{% block title %}项目管理 - Mailpilot{% endblock %}
+{% block content %}
+<div class="flex justify-between items-center mb-6">
+    <h2 class="text-2xl font-bold">项目管理</h2>
+    <a href="/admin/projects/create" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 text-sm">新建项目</a>
+</div>
+<div class="bg-white rounded-lg shadow overflow-hidden">
+    <table class="w-full text-sm">
+        <thead class="bg-gray-50 text-gray-600">
+            <tr>
+                <th class="px-4 py-3 text-left">项目名称</th>
+                <th class="px-4 py-3 text-left">API Key</th>
+                <th class="px-4 py-3 text-center">状态</th>
+                <th class="px-4 py-3 text-left">创建时间</th>
+                <th class="px-4 py-3 text-center">操作</th>
+            </tr>
+        </thead>
+        <tbody class="divide-y">
+            {% for p in projects %}
+            <tr class="hover:bg-gray-50">
+                <td class="px-4 py-3 font-medium">{{ p.name }}</td>
+                <td class="px-4 py-3">
+                    <code class="text-xs bg-gray-100 px-2 py-1 rounded select-all">{{ p.api_key[:16] }}...</code>
+                </td>
+                <td class="px-4 py-3 text-center">
+                    {% if p.is_active %}
+                    <span class="bg-green-100 text-green-700 px-2 py-0.5 rounded-full text-xs">活跃</span>
+                    {% else %}
+                    <span class="bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full text-xs">停用</span>
+                    {% endif %}
+                </td>
+                <td class="px-4 py-3 text-gray-500">{{ p.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                <td class="px-4 py-3 text-center">
+                    <a href="/admin/projects/{{ p.id }}/edit" class="text-blue-600 hover:underline mr-2">编辑</a>
+                    <form method="post" action="/admin/projects/{{ p.id }}/regenerate-key" class="inline"
+                          onsubmit="return confirm('确认重新生成 API Key？旧的 Key 将立即失效。')">
+                        <button class="text-yellow-600 hover:underline mr-2">重置Key</button>
+                    </form>
+                    <form method="post" action="/admin/projects/{{ p.id }}/delete" class="inline"
+                          onsubmit="return confirm('确认删除此项目？所有相关数据将被清除。')">
+                        <button class="text-red-600 hover:underline">删除</button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+            {% if not projects %}
+            <tr><td colspan="5" class="px-4 py-8 text-center text-gray-400">暂无项目</td></tr>
+            {% endif %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

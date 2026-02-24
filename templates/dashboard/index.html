@@ -1,0 +1,107 @@
+{% extends "base.html" %}
+{% set active_page = "dashboard" %}
+{% block title %}Dashboard - Mailpilot{% endblock %}
+{% block head %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+{% endblock %}
+{% block content %}
+<h2 class="text-2xl font-bold mb-6">Dashboard</h2>
+
+<!-- 概览卡片 -->
+<div class="grid grid-cols-3 gap-4 mb-6">
+    {% for label, key in [('今日', 'today'), ('本周', 'week'), ('本月', 'month')] %}
+    <div class="bg-white rounded-lg shadow p-5">
+        <h3 class="text-sm text-gray-500 mb-3">{{ label }}</h3>
+        <div class="text-3xl font-bold">{{ overview[key].total }}</div>
+        <div class="flex gap-4 mt-2 text-sm">
+            <span class="text-green-600">成功 {{ overview[key].success }}</span>
+            <span class="text-red-600">失败 {{ overview[key].failed }}</span>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<div class="grid grid-cols-2 gap-4 mb-6">
+    <!-- 队列状态 -->
+    <div class="bg-white rounded-lg shadow p-5">
+        <h3 class="text-sm text-gray-500 mb-3">队列状态</h3>
+        <div class="space-y-2">
+            {% for status in ['pending', 'processing', 'retry', 'sent', 'failed', 'cancelled'] %}
+            <div class="flex justify-between text-sm">
+                <span>{{ status }}</span>
+                <span class="font-medium">{{ queue_depth.get(status, 0) }}</span>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- 项目排行 -->
+    <div class="bg-white rounded-lg shadow p-5">
+        <h3 class="text-sm text-gray-500 mb-3">项目发送量排行</h3>
+        {% if project_ranking %}
+        <div class="space-y-2">
+            {% for p in project_ranking %}
+            <div class="flex justify-between text-sm">
+                <span>{{ p.name }}</span>
+                <span class="font-medium">{{ p.total }} <span class="text-green-600 text-xs">({{ p.success }})</span></span>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <p class="text-gray-400 text-sm">暂无数据</p>
+        {% endif %}
+    </div>
+</div>
+
+<!-- SMTP 健康状态 -->
+<div class="bg-white rounded-lg shadow p-5 mb-6">
+    <h3 class="text-sm text-gray-500 mb-3">SMTP 配置健康状态</h3>
+    {% if smtp_health %}
+    <div class="grid grid-cols-2 gap-3">
+        {% for s in smtp_health %}
+        <div class="border rounded p-3 text-sm">
+            <div class="font-medium">{{ s.name }}</div>
+            <div class="text-xs text-gray-500">{{ s.host }} | {{ s.from_email }}</div>
+            <div class="mt-1">
+                <span class="{% if s.success_rate >= 90 %}text-green-600{% elif s.success_rate >= 70 %}text-yellow-600{% else %}text-red-600{% endif %}">
+                    成功率 {{ s.success_rate }}%
+                </span>
+                <span class="text-gray-400 ml-2">{{ s.total }} 封</span>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <p class="text-gray-400 text-sm">暂无数据</p>
+    {% endif %}
+</div>
+
+<!-- 最近失败 -->
+<div class="bg-white rounded-lg shadow p-5">
+    <h3 class="text-sm text-gray-500 mb-3">最近失败任务</h3>
+    {% if recent_failures %}
+    <table class="w-full text-sm">
+        <thead class="text-gray-600">
+            <tr>
+                <th class="text-left pb-2">收件人</th>
+                <th class="text-left pb-2">主题</th>
+                <th class="text-left pb-2">错误</th>
+                <th class="text-left pb-2">时间</th>
+            </tr>
+        </thead>
+        <tbody class="divide-y">
+            {% for t in recent_failures %}
+            <tr>
+                <td class="py-2">{{ t.to_addrs[0] if t.to_addrs else '-' }}</td>
+                <td class="py-2">{{ t.subject[:30] }}</td>
+                <td class="py-2 text-red-600 text-xs">{{ (t.error or '-')[:50] }}</td>
+                <td class="py-2 text-gray-500">{{ t.created_at.strftime('%m-%d %H:%M') }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p class="text-gray-400 text-sm">暂无失败任务</p>
+    {% endif %}
+</div>
+{% endblock %}
