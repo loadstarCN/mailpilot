@@ -2,7 +2,7 @@
 {% set active_page = "projects" %}
 {% block title %}{{ '编辑项目' if project else '新建项目' }} - Mailpilot{% endblock %}
 {% block content %}
-<div style="max-width:32rem">
+<div style="max-width:48rem;width:100%">
     <h2 class="page-title reveal">{{ '编辑项目' if project else '新建项目' }}</h2>
     <form method="post" action="{{ '/admin/projects/' ~ project.id ~ '/edit' if project else '/admin/projects/create' }}"
           class="form-card reveal reveal-delay-1" style="display:flex;flex-direction:column;gap:18px">

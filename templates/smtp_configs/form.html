@@ -2,7 +2,7 @@
 {% set active_page = "smtp_configs" %}
 {% block title %}{{ '编辑 SMTP' if config else '添加 SMTP' }} - Mailpilot{% endblock %}
 {% block content %}
-<div style="max-width:32rem;width:100%">
+<div style="max-width:48rem;width:100%">
     <h2 class="page-title reveal">{{ '编辑 SMTP 配置' if config else '添加 SMTP 配置' }}</h2>
     <form method="post" action="{{ '/admin/smtp-configs/' ~ config.id ~ '/edit' if config else '/admin/smtp-configs/create' }}"
           class="form-card reveal reveal-delay-1" style="display:flex;flex-direction:column;gap:18px">

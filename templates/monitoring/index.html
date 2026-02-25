@@ -63,7 +63,26 @@
 let trendChart = null;
 let rtSuccess = 0;
 let rtFailed = 0;
+let currentPeriod = 'day';
 const statusLabels = {pending: '待发送', processing: '发送中', sent: '已发送', failed: '失败', retry: '重试中', cancelled: '已取消'};
+
+function getChartColors() {
+    const s = getComputedStyle(document.documentElement);
+    const isLight = document.documentElement.getAttribute('data-theme') === 'light';
+    return {
+        success: s.getPropertyValue('--color-success').trim() || '#4ade80',
+        danger: s.getPropertyValue('--color-danger').trim() || '#f87171',
+        muted: isLight ? '#94a3b8' : '#5a6785',
+        gridLine: isLight ? 'rgba(0,0,0,0.06)' : 'rgba(99,140,255,0.06)',
+        gridLineX: isLight ? 'rgba(0,0,0,0.03)' : 'rgba(99,140,255,0.04)',
+        tickColor: isLight ? '#64748b' : '#5a6785',
+        legendColor: isLight ? '#64748b' : '#8b97b8',
+        tooltipBg: isLight ? '#ffffff' : '#162040',
+        tooltipBorder: isLight ? 'rgba(0,0,0,0.1)' : 'rgba(99,140,255,0.15)',
+        tooltipTitle: isLight ? '#1a202c' : '#e8ecf4',
+        tooltipBody: isLight ? '#4a5568' : '#8b97b8',
+    };
+}
 
 async function loadTrend(period) {
     const resp = await fetch(`/admin/monitoring/api/trend?period=${period}`);
@@ -76,30 +95,32 @@ async function loadTrend(period) {
 
     if (trendChart) trendChart.destroy();
     const ctx = document.getElementById('trendChart').getContext('2d');
+    const c = getChartColors();
     trendChart = new Chart(ctx, {
         type: 'line',
         data: {
             labels: labels,
             datasets: [
-                {label: '成功', data: data.map(d => d.success), borderColor: '#4ade80', backgroundColor: 'rgba(74,222,128,0.08)', tension: 0.4, fill: true, pointRadius: 0, borderWidth: 2},
-                {label: '失败', data: data.map(d => d.failed), borderColor: '#f87171', backgroundColor: 'rgba(248,113,113,0.05)', tension: 0.4, fill: true, pointRadius: 0, borderWidth: 2},
-                {label: '总数', data: data.map(d => d.total), borderColor: '#5a6785', borderDash: [5,5], tension: 0.4, fill: false, pointRadius: 0, borderWidth: 1.5},
+                {label: '成功', data: data.map(d => d.success), borderColor: c.success, backgroundColor: c.success + '14', tension: 0.4, fill: true, pointRadius: 0, borderWidth: 2},
+                {label: '失败', data: data.map(d => d.failed), borderColor: c.danger, backgroundColor: c.danger + '0d', tension: 0.4, fill: true, pointRadius: 0, borderWidth: 2},
+                {label: '总数', data: data.map(d => d.total), borderColor: c.muted, borderDash: [5,5], tension: 0.4, fill: false, pointRadius: 0, borderWidth: 1.5},
             ]
         },
         options: {
             responsive: true,
             interaction: { mode: 'index', intersect: false },
             scales: {
-                y: { beginAtZero: true, grid: { color: 'rgba(99,140,255,0.06)' }, ticks: { color: '#5a6785', font: { size: 11 } } },
-                x: { grid: { color: 'rgba(99,140,255,0.04)' }, ticks: { color: '#5a6785', font: { size: 11 }, maxRotation: 0 } }
+                y: { beginAtZero: true, grid: { color: c.gridLine }, ticks: { color: c.tickColor, font: { size: 11 } } },
+                x: { grid: { color: c.gridLineX }, ticks: { color: c.tickColor, font: { size: 11 }, maxRotation: 0 } }
             },
             plugins: {
-                legend: { position: 'bottom', labels: { color: '#8b97b8', padding: 20, usePointStyle: true, pointStyleWidth: 8, font: { size: 12 } } },
-                tooltip: { backgroundColor: '#162040', borderColor: 'rgba(99,140,255,0.15)', borderWidth: 1, titleColor: '#e8ecf4', bodyColor: '#8b97b8', padding: 12, cornerRadius: 8 }
+                legend: { position: 'bottom', labels: { color: c.legendColor, padding: 20, usePointStyle: true, boxWidth: 8, boxHeight: 8, font: { size: 12 } } },
+                tooltip: { backgroundColor: c.tooltipBg, borderColor: c.tooltipBorder, borderWidth: 1, titleColor: c.tooltipTitle, bodyColor: c.tooltipBody, padding: 12, cornerRadius: 8 }
             }
         }
     });
 
+    currentPeriod = period;
     document.querySelectorAll('.trend-btn').forEach(b => b.classList.remove('active'));
     document.getElementById(`btn-${period}`).classList.add('active');
 }
@@ -165,6 +186,11 @@ source.addEventListener('send_event', function(e) {
     else rtFailed++;
     document.getElementById('rt-success').textContent = rtSuccess;
     document.getElementById('rt-failed').textContent = rtFailed;
+});
+
+// 主题切换时重绘图表
+window.addEventListener('theme-changed', function() {
+    loadTrend(currentPeriod);
 });
 
 // 初始化
