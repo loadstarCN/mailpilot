@@ -3,96 +3,88 @@
 {% block title %}任务列表 - Mailpilot{% endblock %}
 {% set status_labels = {'pending': '待发送', 'processing': '发送中', 'sent': '已发送', 'failed': '失败', 'retry': '重试中', 'cancelled': '已取消'} %}
 {% block content %}
-<h2 class="text-2xl font-bold mb-6">任务列表</h2>
-<div class="mb-4">
-    <form method="get" class="flex items-center gap-2">
-        <select name="status" onchange="this.form.submit()" class="px-3 py-2 border rounded text-sm">
+<h2 class="page-title reveal">任务列表</h2>
+<div class="filter-bar reveal reveal-delay-1">
+    <form method="get" style="display:flex;align-items:center;gap:10px">
+        <select name="status" onchange="this.form.submit()">
             <option value="">所有状态</option>
             {% for s in ['pending', 'processing', 'sent', 'failed', 'retry', 'cancelled'] %}
             <option value="{{ s }}" {{ 'selected' if selected_status == s }}>{{ status_labels[s] }}</option>
             {% endfor %}
         </select>
-        <select name="project_id" onchange="this.form.submit()" class="px-3 py-2 border rounded text-sm">
+        <select name="project_id" onchange="this.form.submit()">
             <option value="">所有项目</option>
             {% for p in projects %}
             <option value="{{ p.id }}" {{ 'selected' if selected_project_id == p.id|string }}>{{ p.name }}</option>
             {% endfor %}
         </select>
-        <span class="text-sm text-gray-500 ml-2">共 {{ total }} 条</span>
+        <span class="filter-count">共 {{ total }} 条</span>
     </form>
 </div>
-<div class="bg-white rounded-lg shadow overflow-hidden">
-    <table class="w-full text-sm">
-        <thead class="bg-gray-50 text-gray-600">
+<div class="table-wrap reveal reveal-delay-2">
+    <table>
+        <thead>
             <tr>
-                <th class="px-4 py-3 text-left">项目</th>
-                <th class="px-4 py-3 text-left">收件人</th>
-                <th class="px-4 py-3 text-left">主题</th>
-                <th class="px-4 py-3 text-center">状态</th>
-                <th class="px-4 py-3 text-center">重试</th>
-                <th class="px-4 py-3 text-left">创建时间</th>
-                <th class="px-4 py-3 text-center">操作</th>
+                <th>项目</th>
+                <th>收件人</th>
+                <th>主题</th>
+                <th style="text-align:center">状态</th>
+                <th style="text-align:center">重试</th>
+                <th>创建时间</th>
+                <th style="text-align:center">操作</th>
             </tr>
         </thead>
-        <tbody class="divide-y">
+        <tbody>
             {% for t in tasks %}
-            <tr class="hover:bg-gray-50">
-                <td class="px-4 py-3 text-gray-500 text-xs">{{ project_map.get(t.project_id|string, '-') }}</td>
-                <td class="px-4 py-3">{{ t.to_addrs[0] }}{% if t.to_addrs|length > 1 %} +{{ t.to_addrs|length - 1 }}{% endif %}</td>
-                <td class="px-4 py-3">{{ t.subject[:40] }}{{ '...' if t.subject|length > 40 }}</td>
-                <td class="px-4 py-3 text-center">
-                    {% if t.status == 'sent' %}
-                    <span class="bg-green-100 text-green-700 px-2 py-0.5 rounded-full text-xs">{{ status_labels.get(t.status, t.status) }}</span>
-                    {% elif t.status == 'failed' %}
-                    <span class="bg-red-100 text-red-700 px-2 py-0.5 rounded-full text-xs" title="{{ t.error or '' }}">{{ status_labels.get(t.status, t.status) }}</span>
-                    {% elif t.status == 'processing' %}
-                    <span class="bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full text-xs">{{ status_labels.get(t.status, t.status) }}</span>
-                    {% elif t.status == 'cancelled' %}
-                    <span class="bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full text-xs">{{ status_labels.get(t.status, t.status) }}</span>
-                    {% else %}
-                    <span class="bg-yellow-100 text-yellow-700 px-2 py-0.5 rounded-full text-xs">{{ status_labels.get(t.status, t.status) }}</span>
-                    {% endif %}
+            <tr>
+                <td style="font-size:0.75rem" class="text-muted">{{ project_map.get(t.project_id|string, '-') }}</td>
+                <td>{{ t.to_addrs[0] }}{% if t.to_addrs|length > 1 %} +{{ t.to_addrs|length - 1 }}{% endif %}</td>
+                <td>{{ t.subject[:40] }}{{ '...' if t.subject|length > 40 }}</td>
+                <td style="text-align:center">
+                    <span class="badge badge-{{ t.status }}" {% if t.status == 'failed' %}title="{{ t.error or '' }}"{% endif %}>
+                        {{ status_labels.get(t.status, t.status) }}
+                    </span>
                 </td>
-                <td class="px-4 py-3 text-center text-gray-500">{{ t.retry_count }}/{{ t.max_retries }}</td>
-                <td class="px-4 py-3 text-gray-500">{{ t.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
-                <td class="px-4 py-3 text-center">
-                    <div class="flex items-center justify-center gap-1">
+                <td style="text-align:center" class="text-muted">{{ t.retry_count }}/{{ t.max_retries }}</td>
+                <td class="text-muted">{{ t.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                <td style="text-align:center">
+                    <div style="display:flex;align-items:center;justify-content:center;gap:2px">
                         {% if t.status == 'failed' %}
-                        <form method="post" action="/admin/tasks/{{ t.id }}/retry" class="inline">
+                        <form method="post" action="/admin/tasks/{{ t.id }}/retry" style="display:inline">
                             <input type="hidden" name="_csrf_token" value="{{ request.state.csrf_token }}">
-                            <button title="重试" class="p-1.5 text-blue-600 hover:bg-blue-50 rounded transition-colors">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <button title="重试" class="icon-btn icon-btn-edit">
+                                <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
                                 </svg>
                             </button>
                         </form>
                         {% elif t.status in ('pending', 'retry') %}
-                        <form method="post" action="/admin/tasks/{{ t.id }}/cancel" class="inline">
+                        <form method="post" action="/admin/tasks/{{ t.id }}/cancel" style="display:inline">
                             <input type="hidden" name="_csrf_token" value="{{ request.state.csrf_token }}">
-                            <button title="取消" class="p-1.5 text-red-600 hover:bg-red-50 rounded transition-colors">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <button title="取消" class="icon-btn icon-btn-danger">
+                                <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
                                 </svg>
                             </button>
                         </form>
                         {% else %}
-                        <span class="text-gray-400">-</span>
+                        <span class="text-muted">-</span>
                         {% endif %}
                     </div>
                 </td>
             </tr>
             {% endfor %}
             {% if not tasks %}
-            <tr><td colspan="7" class="px-4 py-8 text-center text-gray-400">暂无任务</td></tr>
+            <tr><td colspan="7" style="text-align:center;padding:40px 18px;color:var(--text-muted)">暂无任务</td></tr>
             {% endif %}
         </tbody>
     </table>
 </div>
 {% if total_pages > 1 %}
-<div class="mt-4 flex justify-center gap-1">
+<div class="pagination reveal">
     {% for p in range(1, total_pages + 1) %}
     <a href="?page={{ p }}&status={{ selected_status or '' }}&project_id={{ selected_project_id or '' }}"
-       class="px-3 py-1 rounded text-sm {{ 'bg-blue-600 text-white' if p == page else 'bg-white border hover:bg-gray-50' }}">{{ p }}</a>
+       class="{{ 'active' if p == page }}">{{ p }}</a>
     {% endfor %}
 </div>
 {% endif %}

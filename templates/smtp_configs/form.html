@@ -2,88 +2,81 @@
 {% set active_page = "smtp_configs" %}
 {% block title %}{{ '编辑 SMTP' if config else '添加 SMTP' }} - Mailpilot{% endblock %}
 {% block content %}
-<div class="max-w-lg">
-    <h2 class="text-2xl font-bold mb-6">{{ '编辑 SMTP 配置' if config else '添加 SMTP 配置' }}</h2>
+<div style="max-width:32rem;width:100%">
+    <h2 class="page-title reveal">{{ '编辑 SMTP 配置' if config else '添加 SMTP 配置' }}</h2>
     <form method="post" action="{{ '/admin/smtp-configs/' ~ config.id ~ '/edit' if config else '/admin/smtp-configs/create' }}"
-          class="bg-white rounded-lg shadow p-6 space-y-4">
+          class="form-card reveal reveal-delay-1" style="display:flex;flex-direction:column;gap:18px">
         <input type="hidden" name="_csrf_token" value="{{ request.state.csrf_token }}">
         <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">所属项目</label>
-            <select name="project_id" required class="w-full px-3 py-2 border rounded-md" {{ 'disabled' if config }}>
+            <label class="form-label">所属项目</label>
+            <select name="project_id" required class="form-input" {{ 'disabled' if config }}>
                 {% for p in projects %}
                 <option value="{{ p.id }}" {{ 'selected' if config and config.project_id == p.id }}>{{ p.name }}</option>
                 {% endfor %}
             </select>
         </div>
         <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">配置名称</label>
+            <label class="form-label">配置名称</label>
             <input type="text" name="name" value="{{ config.name or '' if config else '' }}" placeholder="如：主发送、营销"
-                   class="w-full px-3 py-2 border rounded-md">
+                   class="form-input">
         </div>
-        <div class="grid grid-cols-2 gap-4">
+        <div class="grid-2-form">
             <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">SMTP 服务器</label>
-                <input type="text" name="host" value="{{ config.host if config else '' }}" required
-                       class="w-full px-3 py-2 border rounded-md">
+                <label class="form-label">SMTP 服务器</label>
+                <input type="text" name="host" value="{{ config.host if config else '' }}" required class="form-input">
             </div>
             <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">端口</label>
-                <input type="number" name="port" value="{{ config.port if config else 587 }}" required
-                       class="w-full px-3 py-2 border rounded-md">
+                <label class="form-label">端口</label>
+                <input type="number" name="port" value="{{ config.port if config else 587 }}" required class="form-input">
             </div>
         </div>
-        <div class="grid grid-cols-2 gap-4">
+        <div class="grid-2-form">
             <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">用户名</label>
-                <input type="text" name="username" value="{{ config.username if config else '' }}" required
-                       class="w-full px-3 py-2 border rounded-md">
+                <label class="form-label">用户名</label>
+                <input type="text" name="username" value="{{ config.username if config else '' }}" required class="form-input">
             </div>
             <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">密码{{ '（留空不修改）' if config else '' }}</label>
-                <input type="password" name="password" {{ '' if config else 'required' }}
-                       class="w-full px-3 py-2 border rounded-md">
+                <label class="form-label">密码{{ '（留空不修改）' if config else '' }}</label>
+                <input type="password" name="password" {{ '' if config else 'required' }} class="form-input">
             </div>
         </div>
-        <div class="grid grid-cols-2 gap-4">
+        <div class="grid-2-form">
             <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">发件人邮箱</label>
-                <input type="email" name="from_email" value="{{ config.from_email if config else '' }}" required
-                       class="w-full px-3 py-2 border rounded-md">
+                <label class="form-label">发件人邮箱</label>
+                <input type="email" name="from_email" value="{{ config.from_email if config else '' }}" required class="form-input">
             </div>
             <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">发件人名称</label>
-                <input type="text" name="from_name" value="{{ config.from_name or '' if config else '' }}"
-                       class="w-full px-3 py-2 border rounded-md">
+                <label class="form-label">发件人名称</label>
+                <input type="text" name="from_name" value="{{ config.from_name or '' if config else '' }}" class="form-input">
             </div>
         </div>
         <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">每小时发送上限</label>
-            <input type="number" name="max_per_hour" value="{{ config.max_per_hour if config else 100 }}"
-                   class="w-full px-3 py-2 border rounded-md">
+            <label class="form-label">每小时发送上限</label>
+            <input type="number" name="max_per_hour" value="{{ config.max_per_hour if config else 100 }}" class="form-input">
         </div>
-        <div class="flex gap-4">
-            <label class="flex items-center" title="STARTTLS，端口 587">
-                <input type="checkbox" name="use_tls" class="mr-2" {{ 'checked' if not config or config.use_tls }}>
-                <span class="text-sm text-gray-700">STARTTLS（587）</span>
+        <div style="display:flex;gap:20px;flex-wrap:wrap">
+            <label style="display:flex;align-items:center;gap:8px;cursor:pointer" title="STARTTLS，端口 587">
+                <input type="checkbox" name="use_tls" class="form-checkbox" {{ 'checked' if not config or config.use_tls }}>
+                <span style="font-size:0.85rem;color:var(--text-secondary)">STARTTLS（587）</span>
             </label>
-            <label class="flex items-center" title="隐式 SSL，端口 465">
-                <input type="checkbox" name="use_ssl" class="mr-2" {{ 'checked' if config and config.use_ssl }}>
-                <span class="text-sm text-gray-700">SSL（465）</span>
+            <label style="display:flex;align-items:center;gap:8px;cursor:pointer" title="隐式 SSL，端口 465">
+                <input type="checkbox" name="use_ssl" class="form-checkbox" {{ 'checked' if config and config.use_ssl }}>
+                <span style="font-size:0.85rem;color:var(--text-secondary)">SSL（465）</span>
             </label>
-            <label class="flex items-center">
-                <input type="checkbox" name="is_default" class="mr-2" {{ 'checked' if config and config.is_default }}>
-                <span class="text-sm text-gray-700">设为默认</span>
+            <label style="display:flex;align-items:center;gap:8px;cursor:pointer">
+                <input type="checkbox" name="is_default" class="form-checkbox" {{ 'checked' if config and config.is_default }}>
+                <span style="font-size:0.85rem;color:var(--text-secondary)">设为默认</span>
             </label>
             {% if config %}
-            <label class="flex items-center">
-                <input type="checkbox" name="is_active" class="mr-2" {{ 'checked' if config.is_active }}>
-                <span class="text-sm text-gray-700">启用</span>
+            <label style="display:flex;align-items:center;gap:8px;cursor:pointer">
+                <input type="checkbox" name="is_active" class="form-checkbox" {{ 'checked' if config.is_active }}>
+                <span style="font-size:0.85rem;color:var(--text-secondary)">启用</span>
             </label>
             {% endif %}
         </div>
-        <div class="flex gap-3">
-            <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 text-sm">保存</button>
-            <a href="/admin/smtp-configs" class="px-4 py-2 border rounded text-sm hover:bg-gray-50">取消</a>
+        <div style="display:flex;gap:10px">
+            <button type="submit" class="btn btn-primary">保存</button>
+            <a href="/admin/smtp-configs" class="btn btn-secondary">取消</a>
         </div>
     </form>
 </div>

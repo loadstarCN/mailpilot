@@ -5,56 +5,54 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
 {% endblock %}
 {% block content %}
-<h2 class="text-2xl font-bold mb-6">实时监控</h2>
+<h2 class="page-title reveal">实时监控</h2>
 
-<div class="grid grid-cols-3 gap-4 mb-6">
+<div class="grid-3">
     <!-- Worker 状态 -->
-    <div class="bg-white rounded-lg shadow p-5">
-        <h3 class="text-sm text-gray-500 mb-2">Worker 状态</h3>
-        <div id="worker-status">
-            <div class="text-sm space-y-1">
-                <div>状态: <span id="ws-running" class="font-medium">-</span></div>
-                <div>并发数: <span id="ws-concurrency" class="font-medium">-</span></div>
-                <div>活跃任务: <span id="ws-active" class="font-medium">-</span></div>
-                <div>运行时间: <span id="ws-uptime" class="font-medium">-</span></div>
-            </div>
+    <div class="card reveal reveal-delay-1">
+        <div class="card-header">Worker 状态</div>
+        <div id="worker-status" style="font-size:0.85rem;display:flex;flex-direction:column;gap:8px">
+            <div class="queue-row"><span>状态</span><span id="ws-running">-</span></div>
+            <div class="queue-row"><span>并发数</span><span id="ws-concurrency">-</span></div>
+            <div class="queue-row"><span>活跃任务</span><span id="ws-active">-</span></div>
+            <div class="queue-row"><span>运行时间</span><span id="ws-uptime">-</span></div>
         </div>
     </div>
 
     <!-- 队列深度 -->
-    <div class="bg-white rounded-lg shadow p-5">
-        <h3 class="text-sm text-gray-500 mb-2">队列深度</h3>
-        <div id="queue-depth" class="text-sm space-y-1"></div>
+    <div class="card reveal reveal-delay-2">
+        <div class="card-header">队列深度</div>
+        <div id="queue-depth" style="font-size:0.85rem;display:flex;flex-direction:column;gap:8px"></div>
     </div>
 
     <!-- 计数器 -->
-    <div class="bg-white rounded-lg shadow p-5">
-        <h3 class="text-sm text-gray-500 mb-2">实时计数</h3>
-        <div class="text-sm space-y-1">
-            <div>成功: <span id="rt-success" class="font-medium text-green-600">0</span></div>
-            <div>失败: <span id="rt-failed" class="font-medium text-red-600">0</span></div>
+    <div class="card reveal reveal-delay-3">
+        <div class="card-header">实时计数</div>
+        <div style="font-size:0.85rem;display:flex;flex-direction:column;gap:8px">
+            <div class="queue-row"><span>成功</span><span id="rt-success" class="text-success">0</span></div>
+            <div class="queue-row"><span>失败</span><span id="rt-failed" class="text-danger">0</span></div>
         </div>
     </div>
 </div>
 
 <!-- 趋势图 -->
-<div class="bg-white rounded-lg shadow p-5 mb-6">
-    <div class="flex justify-between items-center mb-4">
-        <h3 class="text-sm text-gray-500">发送趋势</h3>
-        <div class="flex gap-2">
-            <button onclick="loadTrend('day')" class="px-3 py-1 text-sm rounded border hover:bg-gray-50" id="btn-day">24小时</button>
-            <button onclick="loadTrend('week')" class="px-3 py-1 text-sm rounded border hover:bg-gray-50" id="btn-week">7天</button>
-            <button onclick="loadTrend('month')" class="px-3 py-1 text-sm rounded border hover:bg-gray-50" id="btn-month">30天</button>
+<div class="card reveal reveal-delay-4" style="margin-bottom:24px">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+        <div class="card-header" style="margin-bottom:0">发送趋势</div>
+        <div style="display:flex;gap:6px">
+            <button onclick="loadTrend('day')" class="trend-btn" id="btn-day">24小时</button>
+            <button onclick="loadTrend('week')" class="trend-btn" id="btn-week">7天</button>
+            <button onclick="loadTrend('month')" class="trend-btn" id="btn-month">30天</button>
         </div>
     </div>
     <canvas id="trendChart" height="80"></canvas>
 </div>
 
 <!-- 实时动态流 -->
-<div class="bg-white rounded-lg shadow p-5">
-    <h3 class="text-sm text-gray-500 mb-3">实时发送动态</h3>
-    <div id="activity-feed" class="space-y-2 max-h-96 overflow-y-auto">
-        <p class="text-gray-400 text-sm" id="feed-empty">等待事件...</p>
+<div class="card reveal reveal-delay-5">
+    <div class="card-header">实时发送动态</div>
+    <div id="activity-feed" style="max-height:400px;overflow-y:auto">
+        <p class="text-muted" style="font-size:0.85rem" id="feed-empty">等待事件...</p>
     </div>
 </div>
 
@@ -83,24 +81,38 @@ async function loadTrend(period) {
         data: {
             labels: labels,
             datasets: [
-                {label: '成功', data: data.map(d => d.success), borderColor: '#10b981', tension: 0.3, fill: false},
-                {label: '失败', data: data.map(d => d.failed), borderColor: '#ef4444', tension: 0.3, fill: false},
-                {label: '总数', data: data.map(d => d.total), borderColor: '#6b7280', borderDash: [5,5], tension: 0.3, fill: false},
+                {label: '成功', data: data.map(d => d.success), borderColor: '#4ade80', backgroundColor: 'rgba(74,222,128,0.08)', tension: 0.4, fill: true, pointRadius: 0, borderWidth: 2},
+                {label: '失败', data: data.map(d => d.failed), borderColor: '#f87171', backgroundColor: 'rgba(248,113,113,0.05)', tension: 0.4, fill: true, pointRadius: 0, borderWidth: 2},
+                {label: '总数', data: data.map(d => d.total), borderColor: '#5a6785', borderDash: [5,5], tension: 0.4, fill: false, pointRadius: 0, borderWidth: 1.5},
             ]
         },
-        options: {responsive: true, scales: {y: {beginAtZero: true}}, plugins: {legend: {position: 'bottom'}}}
+        options: {
+            responsive: true,
+            interaction: { mode: 'index', intersect: false },
+            scales: {
+                y: { beginAtZero: true, grid: { color: 'rgba(99,140,255,0.06)' }, ticks: { color: '#5a6785', font: { size: 11 } } },
+                x: { grid: { color: 'rgba(99,140,255,0.04)' }, ticks: { color: '#5a6785', font: { size: 11 }, maxRotation: 0 } }
+            },
+            plugins: {
+                legend: { position: 'bottom', labels: { color: '#8b97b8', padding: 20, usePointStyle: true, pointStyleWidth: 8, font: { size: 12 } } },
+                tooltip: { backgroundColor: '#162040', borderColor: 'rgba(99,140,255,0.15)', borderWidth: 1, titleColor: '#e8ecf4', bodyColor: '#8b97b8', padding: 12, cornerRadius: 8 }
+            }
+        }
     });
 
-    document.querySelectorAll('[id^=btn-]').forEach(b => b.classList.remove('bg-blue-100'));
-    document.getElementById(`btn-${period}`).classList.add('bg-blue-100');
+    document.querySelectorAll('.trend-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById(`btn-${period}`).classList.add('active');
 }
 
 async function loadWorkerStatus() {
     try {
         const resp = await fetch('/admin/monitoring/api/worker-status');
         const data = await resp.json();
-        document.getElementById('ws-running').textContent = data.running ? '运行中' : '已停止';
-        document.getElementById('ws-running').className = `font-medium ${data.running ? 'text-green-600' : 'text-red-600'}`;
+        const el = document.getElementById('ws-running');
+        el.textContent = data.running ? '运行中' : '已停止';
+        el.className = data.running ? 'text-success' : 'text-danger';
+        el.style.fontFamily = "'Outfit',sans-serif";
+        el.style.fontWeight = '600';
         document.getElementById('ws-concurrency').textContent = data.concurrency;
         document.getElementById('ws-active').textContent = data.active_tasks;
         const hours = Math.floor(data.uptime_seconds / 3600);
@@ -117,21 +129,12 @@ async function loadQueueDepth() {
         el.textContent = '';
         const entries = Object.entries(data);
         if (entries.length === 0) {
-            const p = document.createElement('p');
-            p.className = 'text-gray-400';
-            p.textContent = '空';
-            el.appendChild(p);
+            el.innerHTML = '<span class="text-muted">空</span>';
         } else {
             entries.forEach(([k, v]) => {
                 const row = document.createElement('div');
-                row.className = 'flex justify-between';
-                const sk = document.createElement('span');
-                sk.textContent = statusLabels[k] || k;
-                const sv = document.createElement('span');
-                sv.className = 'font-medium';
-                sv.textContent = v;
-                row.appendChild(sk);
-                row.appendChild(sv);
+                row.className = 'queue-row';
+                row.innerHTML = `<span>${statusLabels[k] || k}</span><span>${v}</span>`;
                 el.appendChild(row);
             });
         }
@@ -144,27 +147,21 @@ source.addEventListener('send_event', function(e) {
     const event = JSON.parse(e.data);
     document.getElementById('feed-empty')?.remove();
     const feed = document.getElementById('activity-feed');
-    const statusClass = event.status === 'sent' ? 'text-green-600' : 'text-red-600';
+    const isSent = event.status === 'sent';
     const time = new Date(event.timestamp).toLocaleTimeString('zh-CN');
     const div = document.createElement('div');
-    div.className = 'text-sm border-b pb-2';
-    const spans = [
-        ['text-gray-400', time],
-        [`${statusClass} font-medium ml-2`, statusLabels[event.status] || event.status],
-        ['ml-2', event.project],
-        ['text-gray-500 ml-1', '→ ' + event.to],
-        ['text-gray-400 ml-2 text-xs', event.subject.substring(0, 30)],
-    ];
-    spans.forEach(([cls, txt]) => {
-        const s = document.createElement('span');
-        s.className = cls;
-        s.textContent = txt;
-        div.appendChild(s);
-    });
+    div.className = 'feed-item';
+    div.innerHTML = `
+        <span class="feed-time">${time}</span>
+        <span class="badge badge-${event.status}" style="font-size:0.68rem">${statusLabels[event.status] || event.status}</span>
+        <span style="color:var(--text-primary);font-weight:500">${event.project}</span>
+        <span class="text-muted" style="font-size:0.8rem">&rarr; ${event.to}</span>
+        <span class="text-muted" style="font-size:0.75rem;opacity:0.6;margin-left:auto">${event.subject.substring(0, 30)}</span>
+    `;
     feed.insertBefore(div, feed.firstChild);
     if (feed.children.length > 50) feed.removeChild(feed.lastChild);
 
-    if (event.status === 'sent') rtSuccess++;
+    if (isSent) rtSuccess++;
     else rtFailed++;
     document.getElementById('rt-success').textContent = rtSuccess;
     document.getElementById('rt-failed').textContent = rtFailed;
