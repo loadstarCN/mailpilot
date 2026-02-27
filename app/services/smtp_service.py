@@ -1,12 +1,59 @@
 import uuid
+from datetime import datetime, timedelta, timezone
 
 import aiosmtplib
-from sqlalchemy import select, update
+from sqlalchemy import func, select, text, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..config import settings
 from ..core.security import CryptoService
+from ..models.email_task import EmailTask
 from ..models.smtp_config import SmtpConfig
+
+
+class RateLimitExceeded(Exception):
+    """SMTP 发送频率超限，携带限流窗口结束时间"""
+
+    def __init__(self, max_per_hour: int, retry_after: datetime):
+        self.max_per_hour = max_per_hour
+        self.retry_after = retry_after
+        super().__init__(f"超过每小时 {max_per_hour} 封限制")
+
+
+async def check_rate_limit(db: AsyncSession, smtp_config_id) -> None:
+    """检查近 1 小时发送量是否超出限制，超限时抛出 RateLimitExceeded"""
+    result = await db.execute(
+        select(
+            func.count(EmailTask.id).label("cnt"),
+            SmtpConfig.max_per_hour,
+        )
+        .join(SmtpConfig, SmtpConfig.id == EmailTask.smtp_config_id)
+        .where(
+            EmailTask.smtp_config_id == smtp_config_id,
+            EmailTask.status == "sent",
+            EmailTask.sent_at >= func.now() - text("interval '1 hour'"),
+        )
+        .group_by(SmtpConfig.max_per_hour)
+    )
+    row = result.one_or_none()
+    if row and row.cnt >= row.max_per_hour:
+        # 查询窗口内最早的 sent_at，计算限流窗口结束时间
+        earliest = await db.execute(
+            select(EmailTask.sent_at)
+            .where(
+                EmailTask.smtp_config_id == smtp_config_id,
+                EmailTask.status == "sent",
+                EmailTask.sent_at >= func.now() - text("interval '1 hour'"),
+            )
+            .order_by(EmailTask.sent_at.asc())
+            .limit(1)
+        )
+        earliest_sent_at = earliest.scalar_one()
+        retry_after = earliest_sent_at + timedelta(hours=1, seconds=5)
+        # 确保 retry_after 带时区信息
+        if retry_after.tzinfo is None:
+            retry_after = retry_after.replace(tzinfo=timezone.utc)
+        raise RateLimitExceeded(row.max_per_hour, retry_after)
 
 _crypto = CryptoService(settings.secret_key)
 

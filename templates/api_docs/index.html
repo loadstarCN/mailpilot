@@ -1,0 +1,1026 @@
+{% extends "base.html" %}
+{% set active_page = "api_docs" %}
+{% block title %}API 文档 - Mailpilot{% endblock %}
+{% block content %}
+<div class="reveal" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+    <h2 class="page-title" style="margin-bottom:0">API 调用文档</h2>
+    <a href="/admin/api-docs/download" class="btn btn-secondary" style="gap:6px;font-size:0.8rem">
+        <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+        </svg>
+        下载 Markdown
+    </a>
+</div>
+<p class="reveal reveal-delay-1" style="color:var(--text-secondary);font-size:0.875rem;margin-bottom:28px;line-height:1.7">
+    完整的 REST API 接口说明。所有接口均以 <code class="code-inline">/api/v1</code> 为前缀，使用 <code class="code-inline">X-API-Key</code> 请求头认证。
+</p>
+
+<!-- 快速导航 -->
+<div class="api-nav card reveal reveal-delay-2" style="margin-bottom:28px">
+    <div class="card-header" style="margin-bottom:12px">快速导航</div>
+    <div class="api-nav-grid">
+        <a href="#auth" class="api-nav-item">
+            <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"/></svg>
+            <span>认证方式</span>
+        </a>
+        <a href="#status" class="api-nav-item">
+            <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            <span>任务状态</span>
+        </a>
+        <a href="#send" class="api-nav-item">
+            <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+            <span>发送邮件</span>
+        </a>
+        <a href="#tasks" class="api-nav-item">
+            <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
+            <span>任务管理</span>
+        </a>
+        <a href="#templates" class="api-nav-item">
+            <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zm0 8a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6z"/></svg>
+            <span>模板管理</span>
+        </a>
+        <a href="#smtp" class="api-nav-item">
+            <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14M5 12a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v4a2 2 0 01-2 2M5 12a2 2 0 00-2 2v4a2 2 0 002 2h14a2 2 0 002-2v-4a2 2 0 00-2-2m-2-4h.01M17 16h.01"/></svg>
+            <span>SMTP 配置</span>
+        </a>
+        <a href="#stats" class="api-nav-item">
+            <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+            <span>统计与健康</span>
+        </a>
+        <a href="#webhook" class="api-nav-item">
+            <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+            <span>Webhook</span>
+        </a>
+        <a href="#errors" class="api-nav-item">
+            <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+            <span>错误响应</span>
+        </a>
+        <a href="#examples" class="api-nav-item">
+            <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/></svg>
+            <span>完整示例</span>
+        </a>
+    </div>
+</div>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- 认证方式 -->
+<!-- ═══════════════════════════════════════════ -->
+<div id="auth" class="api-section reveal">
+    <div class="api-section-header">
+        <h3 class="api-section-title">认证方式</h3>
+    </div>
+    <div class="card" style="margin-bottom:0">
+        <p class="api-desc">每个项目有独立的 API Key，在管理界面的「项目管理」页面获取。所有 API 请求（<code class="code-inline">GET /health</code> 除外）均需在请求头中携带：</p>
+        <div class="api-code-block">
+            <div class="api-code-header">
+                <span>请求头</span>
+                <button class="api-copy-btn" onclick="copyCode(this)" title="复制">
+                    <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+                </button>
+            </div>
+            <pre><code>X-API-Key: your-api-key-here</code></pre>
+        </div>
+        <p class="api-desc" style="margin-top:14px">API Key 与项目绑定，所有操作（发送、查询、模板管理）均在该项目的数据隔离范围内。</p>
+    </div>
+</div>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- 任务状态说明 -->
+<!-- ═══════════════════════════════════════════ -->
+<div id="status" class="api-section reveal">
+    <div class="api-section-header">
+        <h3 class="api-section-title">任务状态说明</h3>
+    </div>
+    <div class="card" style="margin-bottom:0">
+        <div class="table-wrap" style="border:none;background:none;backdrop-filter:none">
+            <table>
+                <thead>
+                    <tr>
+                        <th style="background:none;padding-left:0">状态</th>
+                        <th style="background:none">含义</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td style="padding-left:0"><code class="code-inline">pending</code></td><td>已入队，等待处理</td></tr>
+                    <tr><td style="padding-left:0"><code class="code-inline">processing</code></td><td>Worker 正在处理</td></tr>
+                    <tr><td style="padding-left:0"><code class="code-inline">sent</code></td><td>发送成功</td></tr>
+                    <tr><td style="padding-left:0"><code class="code-inline">failed</code></td><td>已超过最大重试次数，最终失败</td></tr>
+                    <tr><td style="padding-left:0"><code class="code-inline">retry</code></td><td>发送失败，等待重试</td></tr>
+                    <tr><td style="padding-left:0"><code class="code-inline">cancelled</code></td><td>已取消</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- 一、发送邮件 -->
+<!-- ═══════════════════════════════════════════ -->
+<div id="send" class="api-section reveal">
+    <div class="api-section-header">
+        <h3 class="api-section-title">一、发送邮件</h3>
+    </div>
+
+    <!-- 1.1 直接发送 -->
+    <div class="api-endpoint">
+        <div class="api-endpoint-header">
+            <span class="api-method api-method-post">POST</span>
+            <code class="api-path">/api/v1/send</code>
+            <span class="api-endpoint-desc">直接发送</span>
+        </div>
+        <div class="api-endpoint-body">
+            <p class="api-desc">不使用模板，直接传入邮件内容。</p>
+            <h4 class="api-sub-title">请求体</h4>
+            <div class="table-wrap" style="border:none;background:none;backdrop-filter:none">
+                <table>
+                    <thead><tr>
+                        <th style="background:none;padding-left:0">字段</th>
+                        <th style="background:none">类型</th>
+                        <th style="background:none">必填</th>
+                        <th style="background:none">说明</th>
+                    </tr></thead>
+                    <tbody>
+                        <tr><td style="padding-left:0"><code class="code-inline">to</code></td><td>string[]</td><td class="text-success">✅</td><td>收件人列表，合法邮箱地址，1~50 个</td></tr>
+                        <tr><td style="padding-left:0"><code class="code-inline">subject</code></td><td>string</td><td class="text-success">✅</td><td>邮件主题，最长 500 字符</td></tr>
+                        <tr><td style="padding-left:0"><code class="code-inline">body_html</code></td><td>string</td><td class="text-warning">⚠️</td><td>HTML 正文（与 body_text 至少填一个），最大 512KB</td></tr>
+                        <tr><td style="padding-left:0"><code class="code-inline">body_text</code></td><td>string</td><td class="text-warning">⚠️</td><td>纯文本正文，最大 512KB</td></tr>
+                        <tr><td style="padding-left:0"><code class="code-inline">cc</code></td><td>string[]</td><td class="text-muted">❌</td><td>抄送列表，最多 50 个</td></tr>
+                        <tr><td style="padding-left:0"><code class="code-inline">bcc</code></td><td>string[]</td><td class="text-muted">❌</td><td>密送列表，最多 50 个</td></tr>
+                        <tr><td style="padding-left:0"><code class="code-inline">reply_to</code></td><td>string</td><td class="text-muted">❌</td><td>回复地址</td></tr>
+                        <tr><td style="padding-left:0"><code class="code-inline">priority</code></td><td>integer</td><td class="text-muted">❌</td><td>优先级，数字越大越优先，默认 0，范围 0~100</td></tr>
+                        <tr><td style="padding-left:0"><code class="code-inline">max_retries</code></td><td>integer</td><td class="text-muted">❌</td><td>最大重试次数，默认 3，范围 0~10</td></tr>
+                        <tr><td style="padding-left:0"><code class="code-inline">smtp_config</code></td><td>string</td><td class="text-muted">❌</td><td>SMTP 配置的 UUID，不传则使用项目默认配置</td></tr>
+                        <tr><td style="padding-left:0"><code class="code-inline">webhook_url</code></td><td>string</td><td class="text-muted">❌</td><td>发送结果回调地址（合法 HTTP/HTTPS URL）</td></tr>
+                        <tr><td style="padding-left:0"><code class="code-inline">scheduled_at</code></td><td>string</td><td class="text-muted">❌</td><td>定时发送时间，ISO 8601 格式</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="api-code-pair">
+                <div class="api-code-block">
+                    <div class="api-code-header">
+                        <span>请求示例</span>
+                        <button class="api-copy-btn" onclick="copyCode(this)" title="复制"><svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg></button>
+                    </div>
+<pre><code>{
+  "to": ["user@example.com"],
+  "cc": ["manager@example.com"],
+  "subject": "您的订单已发货",
+  "body_html": "&lt;p&gt;您好，您的订单 &lt;b&gt;#12345&lt;/b&gt; 已发货。&lt;/p&gt;",
+  "body_text": "您好，您的订单 #12345 已发货。",
+  "priority": 1,
+  "webhook_url": "https://your-app.com/hooks/email-status"
+}</code></pre>
+                </div>
+                <div class="api-code-block">
+                    <div class="api-code-header"><span>响应示例</span></div>
+<pre><code>{
+  "task_id": "550e8400-e29b-41d4-a716-446655440000",
+  "status": "pending"
+}</code></pre>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 1.2 模板发送 -->
+    <div class="api-endpoint">
+        <div class="api-endpoint-header">
+            <span class="api-method api-method-post">POST</span>
+            <code class="api-path">/api/v1/send/template</code>
+            <span class="api-endpoint-desc">模板发送</span>
+        </div>
+        <div class="api-endpoint-body">
+            <p class="api-desc">使用预先在管理界面创建的邮件模板发送，模板支持 Jinja2 变量渲染。</p>
+            <h4 class="api-sub-title">请求体</h4>
+            <div class="table-wrap" style="border:none;background:none;backdrop-filter:none">
+                <table>
+                    <thead><tr>
+                        <th style="background:none;padding-left:0">字段</th>
+                        <th style="background:none">类型</th>
+                        <th style="background:none">必填</th>
+                        <th style="background:none">说明</th>
+                    </tr></thead>
+                    <tbody>
+                        <tr><td style="padding-left:0"><code class="code-inline">to</code></td><td>string[]</td><td class="text-success">✅</td><td>收件人列表，1~50 个</td></tr>
+                        <tr><td style="padding-left:0"><code class="code-inline">template</code></td><td>string</td><td class="text-success">✅</td><td>模板名称（在管理界面查看）</td></tr>
+                        <tr><td style="padding-left:0"><code class="code-inline">variables</code></td><td>object</td><td class="text-muted">❌</td><td>模板变量键值对，默认 {}</td></tr>
+                        <tr><td style="padding-left:0"><code class="code-inline">cc</code></td><td>string[]</td><td class="text-muted">❌</td><td>抄送列表，最多 50 个</td></tr>
+                        <tr><td style="padding-left:0"><code class="code-inline">bcc</code></td><td>string[]</td><td class="text-muted">❌</td><td>密送列表，最多 50 个</td></tr>
+                        <tr><td style="padding-left:0"><code class="code-inline">reply_to</code></td><td>string</td><td class="text-muted">❌</td><td>回复地址</td></tr>
+                        <tr><td style="padding-left:0"><code class="code-inline">priority</code></td><td>integer</td><td class="text-muted">❌</td><td>优先级，默认 0，范围 0~100</td></tr>
+                        <tr><td style="padding-left:0"><code class="code-inline">max_retries</code></td><td>integer</td><td class="text-muted">❌</td><td>最大重试次数，默认 3，范围 0~10</td></tr>
+                        <tr><td style="padding-left:0"><code class="code-inline">smtp_config</code></td><td>string</td><td class="text-muted">❌</td><td>SMTP 配置 UUID，不传则使用项目默认</td></tr>
+                        <tr><td style="padding-left:0"><code class="code-inline">webhook_url</code></td><td>string</td><td class="text-muted">❌</td><td>回调地址（合法 HTTP/HTTPS URL）</td></tr>
+                        <tr><td style="padding-left:0"><code class="code-inline">scheduled_at</code></td><td>string</td><td class="text-muted">❌</td><td>定时发送时间（ISO 8601）</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="api-code-pair">
+                <div class="api-code-block">
+                    <div class="api-code-header">
+                        <span>请求示例</span>
+                        <button class="api-copy-btn" onclick="copyCode(this)" title="复制"><svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg></button>
+                    </div>
+<pre><code>{
+  "to": ["newuser@example.com"],
+  "template": "registration_pending",
+  "variables": {
+    "username": "张三",
+    "email": "newuser@example.com",
+    "support_email": "support@example.com"
+  }
+}</code></pre>
+                </div>
+                <div class="api-code-block">
+                    <div class="api-code-header"><span>响应示例</span></div>
+<pre><code>{
+  "task_id": "550e8400-e29b-41d4-a716-446655440000",
+  "status": "pending"
+}</code></pre>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- 二、任务管理 -->
+<!-- ═══════════════════════════════════════════ -->
+<div id="tasks" class="api-section reveal">
+    <div class="api-section-header">
+        <h3 class="api-section-title">二、任务管理</h3>
+    </div>
+
+    <!-- 2.1 查询任务详情 -->
+    <div class="api-endpoint">
+        <div class="api-endpoint-header">
+            <span class="api-method api-method-get">GET</span>
+            <code class="api-path">/api/v1/tasks/{task_id}</code>
+            <span class="api-endpoint-desc">查询任务详情</span>
+        </div>
+        <div class="api-endpoint-body">
+            <div class="api-code-block">
+                <div class="api-code-header"><span>响应示例</span></div>
+<pre><code>{
+  "id": "550e8400-e29b-41d4-a716-446655440000",
+  "project_id": "...",
+  "to_addrs": ["user@example.com"],
+  "cc_addrs": null,
+  "bcc_addrs": null,
+  "subject": "您的订单已发货",
+  "status": "sent",
+  "priority": 0,
+  "retry_count": 0,
+  "max_retries": 3,
+  "error": null,
+  "created_at": "2026-02-24T10:00:00Z",
+  "scheduled_at": null,
+  "sent_at": "2026-02-24T10:00:03Z"
+}</code></pre>
+            </div>
+        </div>
+    </div>
+
+    <!-- 2.2 查询任务列表 -->
+    <div class="api-endpoint">
+        <div class="api-endpoint-header">
+            <span class="api-method api-method-get">GET</span>
+            <code class="api-path">/api/v1/tasks</code>
+            <span class="api-endpoint-desc">查询任务列表</span>
+        </div>
+        <div class="api-endpoint-body">
+            <h4 class="api-sub-title">查询参数</h4>
+            <div class="table-wrap" style="border:none;background:none;backdrop-filter:none">
+                <table>
+                    <thead><tr>
+                        <th style="background:none;padding-left:0">参数</th>
+                        <th style="background:none">类型</th>
+                        <th style="background:none">说明</th>
+                    </tr></thead>
+                    <tbody>
+                        <tr><td style="padding-left:0"><code class="code-inline">status</code></td><td>string</td><td>按状态筛选：pending / processing / sent / failed / retry / cancelled</td></tr>
+                        <tr><td style="padding-left:0"><code class="code-inline">page</code></td><td>integer</td><td>页码，默认 1，最小 1</td></tr>
+                        <tr><td style="padding-left:0"><code class="code-inline">page_size</code></td><td>integer</td><td>每页数量，默认 20，范围 1~100</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="api-code-pair">
+                <div class="api-code-block">
+                    <div class="api-code-header"><span>请求示例</span></div>
+<pre><code>GET /api/v1/tasks?status=failed&amp;page=1&amp;page_size=20</code></pre>
+                </div>
+                <div class="api-code-block">
+                    <div class="api-code-header"><span>响应示例</span></div>
+<pre><code>{
+  "items": [...],
+  "total": 42,
+  "page": 1,
+  "page_size": 20
+}</code></pre>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 2.3 取消任务 -->
+    <div class="api-endpoint">
+        <div class="api-endpoint-header">
+            <span class="api-method api-method-post">POST</span>
+            <code class="api-path">/api/v1/tasks/{task_id}/cancel</code>
+            <span class="api-endpoint-desc">取消任务</span>
+        </div>
+        <div class="api-endpoint-body">
+            <p class="api-desc">只有 <code class="code-inline">pending</code> / <code class="code-inline">retry</code> 状态的任务可以取消。</p>
+            <div class="api-code-block">
+                <div class="api-code-header"><span>响应示例</span></div>
+<pre><code>{ "message": "任务已取消" }</code></pre>
+            </div>
+        </div>
+    </div>
+
+    <!-- 2.4 手动重试 -->
+    <div class="api-endpoint">
+        <div class="api-endpoint-header">
+            <span class="api-method api-method-post">POST</span>
+            <code class="api-path">/api/v1/tasks/{task_id}/retry</code>
+            <span class="api-endpoint-desc">手动重试</span>
+        </div>
+        <div class="api-endpoint-body">
+            <p class="api-desc">将 <code class="code-inline">failed</code> 状态的任务重新放入队列。</p>
+            <div class="api-code-block">
+                <div class="api-code-header"><span>响应示例</span></div>
+<pre><code>{ "message": "任务已重新加入队列" }</code></pre>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- 三、模板管理 -->
+<!-- ═══════════════════════════════════════════ -->
+<div id="templates" class="api-section reveal">
+    <div class="api-section-header">
+        <h3 class="api-section-title">三、模板管理</h3>
+    </div>
+    <p class="api-desc" style="margin-bottom:16px">模板在管理界面创建后，可通过 API 进行增删改查和预览。<strong>模板以 <code class="code-inline">name</code> 作为唯一标识</strong>（同项目内唯一），发送时传 <code class="code-inline">template</code> 字段填写 name。</p>
+
+    <!-- 3.1 获取模板列表 -->
+    <div class="api-endpoint">
+        <div class="api-endpoint-header">
+            <span class="api-method api-method-get">GET</span>
+            <code class="api-path">/api/v1/templates</code>
+            <span class="api-endpoint-desc">获取模板列表</span>
+        </div>
+        <div class="api-endpoint-body">
+            <div class="api-code-block">
+                <div class="api-code-header"><span>响应示例</span></div>
+<pre><code>[
+  {
+    "id": "...",
+    "project_id": "...",
+    "name": "registration_pending",
+    "subject": "您的注册申请已收到",
+    "body_html": "...",
+    "body_text": "...",
+    "variables": [],
+    "description": "注册等待审批通知",
+    "is_active": true,
+    "created_at": "2026-02-24T10:00:00Z",
+    "updated_at": null
+  }
+]</code></pre>
+            </div>
+        </div>
+    </div>
+
+    <!-- 3.2 获取单个模板 -->
+    <div class="api-endpoint">
+        <div class="api-endpoint-header">
+            <span class="api-method api-method-get">GET</span>
+            <code class="api-path">/api/v1/templates/{name}</code>
+            <span class="api-endpoint-desc">获取单个模板</span>
+        </div>
+        <div class="api-endpoint-body">
+            <p class="api-desc">通过模板 name 获取完整的模板对象，响应格式同列表中的单个元素。</p>
+        </div>
+    </div>
+
+    <!-- 3.3 创建模板 -->
+    <div class="api-endpoint">
+        <div class="api-endpoint-header">
+            <span class="api-method api-method-post">POST</span>
+            <code class="api-path">/api/v1/templates</code>
+            <span class="api-endpoint-desc">创建模板</span>
+        </div>
+        <div class="api-endpoint-body">
+            <h4 class="api-sub-title">请求体</h4>
+            <div class="table-wrap" style="border:none;background:none;backdrop-filter:none">
+                <table>
+                    <thead><tr>
+                        <th style="background:none;padding-left:0">字段</th>
+                        <th style="background:none">类型</th>
+                        <th style="background:none">必填</th>
+                        <th style="background:none">说明</th>
+                    </tr></thead>
+                    <tbody>
+                        <tr><td style="padding-left:0"><code class="code-inline">name</code></td><td>string</td><td class="text-success">✅</td><td>模板名称，同项目唯一，建议蛇形命名如 welcome_email</td></tr>
+                        <tr><td style="padding-left:0"><code class="code-inline">subject</code></td><td>string</td><td class="text-success">✅</td><td>邮件主题，支持 Jinja2 变量</td></tr>
+                        <tr><td style="padding-left:0"><code class="code-inline">body_html</code></td><td>string</td><td class="text-success">✅</td><td>HTML 正文，支持 Jinja2</td></tr>
+                        <tr><td style="padding-left:0"><code class="code-inline">body_text</code></td><td>string</td><td class="text-muted">❌</td><td>纯文本正文</td></tr>
+                        <tr><td style="padding-left:0"><code class="code-inline">variables</code></td><td>array</td><td class="text-muted">❌</td><td>变量描述（仅文档用途）</td></tr>
+                        <tr><td style="padding-left:0"><code class="code-inline">description</code></td><td>string</td><td class="text-muted">❌</td><td>模板说明</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="api-code-pair">
+                <div class="api-code-block">
+                    <div class="api-code-header">
+                        <span>请求示例</span>
+                        <button class="api-copy-btn" onclick="copyCode(this)" title="复制"><svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg></button>
+                    </div>
+<pre><code>{
+  "name": "order_shipped",
+  "subject": "您的订单 {{ order_id }} 已发货",
+  "body_html": "&lt;p&gt;您好 {{ username }}，快递单号：{{ tracking_no }}&lt;/p&gt;",
+  "description": "订单发货通知"
+}</code></pre>
+                </div>
+                <div class="api-code-block">
+                    <div class="api-code-header"><span>响应 · HTTP 201</span></div>
+<pre><code>// 返回完整模板对象</code></pre>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 3.4 更新模板 -->
+    <div class="api-endpoint">
+        <div class="api-endpoint-header">
+            <span class="api-method api-method-put">PUT</span>
+            <code class="api-path">/api/v1/templates/{name}</code>
+            <span class="api-endpoint-desc">更新模板</span>
+        </div>
+        <div class="api-endpoint-body">
+            <p class="api-desc">只传需要修改的字段（支持部分更新）。</p>
+            <h4 class="api-sub-title">可选字段</h4>
+            <div class="table-wrap" style="border:none;background:none;backdrop-filter:none">
+                <table>
+                    <thead><tr>
+                        <th style="background:none;padding-left:0">字段</th>
+                        <th style="background:none">类型</th>
+                        <th style="background:none">说明</th>
+                    </tr></thead>
+                    <tbody>
+                        <tr><td style="padding-left:0"><code class="code-inline">subject</code></td><td>string</td><td>新主题</td></tr>
+                        <tr><td style="padding-left:0"><code class="code-inline">body_html</code></td><td>string</td><td>新 HTML 正文</td></tr>
+                        <tr><td style="padding-left:0"><code class="code-inline">body_text</code></td><td>string</td><td>新纯文本正文</td></tr>
+                        <tr><td style="padding-left:0"><code class="code-inline">variables</code></td><td>array</td><td>变量描述</td></tr>
+                        <tr><td style="padding-left:0"><code class="code-inline">description</code></td><td>string</td><td>说明</td></tr>
+                        <tr><td style="padding-left:0"><code class="code-inline">is_active</code></td><td>boolean</td><td>是否启用</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- 3.5 删除模板 -->
+    <div class="api-endpoint">
+        <div class="api-endpoint-header">
+            <span class="api-method api-method-delete">DELETE</span>
+            <code class="api-path">/api/v1/templates/{name}</code>
+            <span class="api-endpoint-desc">删除模板</span>
+        </div>
+        <div class="api-endpoint-body">
+            <div class="api-code-block">
+                <div class="api-code-header"><span>响应示例</span></div>
+<pre><code>{ "message": "已删除" }</code></pre>
+            </div>
+        </div>
+    </div>
+
+    <!-- 3.6 预览模板渲染结果 -->
+    <div class="api-endpoint">
+        <div class="api-endpoint-header">
+            <span class="api-method api-method-post">POST</span>
+            <code class="api-path">/api/v1/templates/{name}/preview</code>
+            <span class="api-endpoint-desc">预览模板渲染</span>
+        </div>
+        <div class="api-endpoint-body">
+            <p class="api-desc">传入变量，返回渲染后的实际内容，用于调试。</p>
+            <div class="api-code-pair">
+                <div class="api-code-block">
+                    <div class="api-code-header">
+                        <span>请求示例</span>
+                        <button class="api-copy-btn" onclick="copyCode(this)" title="复制"><svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg></button>
+                    </div>
+<pre><code>{
+  "variables": {
+    "username": "张三",
+    "order_id": "#12345"
+  }
+}</code></pre>
+                </div>
+                <div class="api-code-block">
+                    <div class="api-code-header"><span>响应示例</span></div>
+<pre><code>{
+  "subject": "您的订单 #12345 已发货",
+  "body_html": "&lt;p&gt;您好 张三，快递单号：...&lt;/p&gt;",
+  "body_text": null
+}</code></pre>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- 四、SMTP 配置管理 -->
+<!-- ═══════════════════════════════════════════ -->
+<div id="smtp" class="api-section reveal">
+    <div class="api-section-header">
+        <h3 class="api-section-title">四、SMTP 配置管理</h3>
+    </div>
+    <p class="api-desc" style="margin-bottom:16px">通过 API 管理项目的 SMTP 发送配置。每个项目可配置多个 SMTP，支持设置默认配置。</p>
+
+    <!-- 4.1 获取 SMTP 配置列表 -->
+    <div class="api-endpoint">
+        <div class="api-endpoint-header">
+            <span class="api-method api-method-get">GET</span>
+            <code class="api-path">/api/v1/config/smtp</code>
+            <span class="api-endpoint-desc">获取 SMTP 配置列表</span>
+        </div>
+        <div class="api-endpoint-body">
+            <div class="api-code-block">
+                <div class="api-code-header"><span>响应示例</span></div>
+<pre><code>[
+  {
+    "id": "...",
+    "project_id": "...",
+    "name": "主发送",
+    "host": "smtp.example.com",
+    "port": 587,
+    "username": "sender@example.com",
+    "use_tls": true,
+    "use_ssl": false,
+    "from_email": "sender@example.com",
+    "from_name": "系统通知",
+    "max_per_hour": 100,
+    "is_default": true,
+    "is_active": true,
+    "created_at": "2026-02-24T10:00:00Z"
+  }
+]</code></pre>
+            </div>
+        </div>
+    </div>
+
+    <!-- 4.2 创建 SMTP 配置 -->
+    <div class="api-endpoint">
+        <div class="api-endpoint-header">
+            <span class="api-method api-method-post">POST</span>
+            <code class="api-path">/api/v1/config/smtp</code>
+            <span class="api-endpoint-desc">创建 SMTP 配置</span>
+        </div>
+        <div class="api-endpoint-body">
+            <h4 class="api-sub-title">请求体</h4>
+            <div class="table-wrap" style="border:none;background:none;backdrop-filter:none">
+                <table>
+                    <thead><tr>
+                        <th style="background:none;padding-left:0">字段</th>
+                        <th style="background:none">类型</th>
+                        <th style="background:none">必填</th>
+                        <th style="background:none">说明</th>
+                    </tr></thead>
+                    <tbody>
+                        <tr><td style="padding-left:0"><code class="code-inline">host</code></td><td>string</td><td class="text-success">✅</td><td>SMTP 服务器地址</td></tr>
+                        <tr><td style="padding-left:0"><code class="code-inline">port</code></td><td>integer</td><td class="text-muted">❌</td><td>端口号，默认 587</td></tr>
+                        <tr><td style="padding-left:0"><code class="code-inline">username</code></td><td>string</td><td class="text-success">✅</td><td>SMTP 用户名</td></tr>
+                        <tr><td style="padding-left:0"><code class="code-inline">password</code></td><td>string</td><td class="text-success">✅</td><td>SMTP 密码</td></tr>
+                        <tr><td style="padding-left:0"><code class="code-inline">from_email</code></td><td>string</td><td class="text-success">✅</td><td>发件人邮箱</td></tr>
+                        <tr><td style="padding-left:0"><code class="code-inline">name</code></td><td>string</td><td class="text-muted">❌</td><td>配置名称</td></tr>
+                        <tr><td style="padding-left:0"><code class="code-inline">use_tls</code></td><td>boolean</td><td class="text-muted">❌</td><td>是否使用 TLS，默认 true</td></tr>
+                        <tr><td style="padding-left:0"><code class="code-inline">use_ssl</code></td><td>boolean</td><td class="text-muted">❌</td><td>是否使用 SSL，默认 false</td></tr>
+                        <tr><td style="padding-left:0"><code class="code-inline">from_name</code></td><td>string</td><td class="text-muted">❌</td><td>发件人显示名称</td></tr>
+                        <tr><td style="padding-left:0"><code class="code-inline">max_per_hour</code></td><td>integer</td><td class="text-muted">❌</td><td>每小时最大发送数，默认 100</td></tr>
+                        <tr><td style="padding-left:0"><code class="code-inline">is_default</code></td><td>boolean</td><td class="text-muted">❌</td><td>是否为默认配置，默认 false</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- 4.3 更新 SMTP 配置 -->
+    <div class="api-endpoint">
+        <div class="api-endpoint-header">
+            <span class="api-method api-method-put">PUT</span>
+            <code class="api-path">/api/v1/config/smtp/{config_id}</code>
+            <span class="api-endpoint-desc">更新 SMTP 配置</span>
+        </div>
+        <div class="api-endpoint-body">
+            <p class="api-desc">只传需要修改的字段（支持部分更新），响应返回完整配置对象。</p>
+        </div>
+    </div>
+
+    <!-- 4.4 测试 SMTP 连接 -->
+    <div class="api-endpoint">
+        <div class="api-endpoint-header">
+            <span class="api-method api-method-post">POST</span>
+            <code class="api-path">/api/v1/config/smtp/{config_id}/test</code>
+            <span class="api-endpoint-desc">测试 SMTP 连接</span>
+        </div>
+        <div class="api-endpoint-body">
+            <p class="api-desc">验证 SMTP 配置是否可以正常连接。</p>
+            <div class="api-code-block">
+                <div class="api-code-header"><span>响应示例</span></div>
+<pre><code>{
+  "success": true,
+  "message": "SMTP 连接测试成功"
+}</code></pre>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- 五、统计与健康 -->
+<!-- ═══════════════════════════════════════════ -->
+<div id="stats" class="api-section reveal">
+    <div class="api-section-header">
+        <h3 class="api-section-title">五、统计与健康</h3>
+    </div>
+
+    <!-- 5.1 发送统计 -->
+    <div class="api-endpoint">
+        <div class="api-endpoint-header">
+            <span class="api-method api-method-get">GET</span>
+            <code class="api-path">/api/v1/stats</code>
+            <span class="api-endpoint-desc">发送统计</span>
+        </div>
+        <div class="api-endpoint-body">
+            <p class="api-desc">返回今日、本周、本月的发送数量、成功数、失败数。</p>
+            <div class="api-code-block">
+                <div class="api-code-header"><span>响应示例</span></div>
+<pre><code>{
+  "today": { "total": 120, "success": 118, "failed": 2 },
+  "week":  { "total": 850, "success": 840, "failed": 10 },
+  "month": { "total": 3200, "success": 3180, "failed": 20 }
+}</code></pre>
+            </div>
+        </div>
+    </div>
+
+    <!-- 5.2 健康检查 -->
+    <div class="api-endpoint">
+        <div class="api-endpoint-header">
+            <span class="api-method api-method-get">GET</span>
+            <code class="api-path">/api/v1/health</code>
+            <span class="api-endpoint-desc">健康检查</span>
+        </div>
+        <div class="api-endpoint-body">
+            <p class="api-desc"><strong>无需认证。</strong>用于监控系统存活探针。</p>
+            <div class="api-code-block">
+                <div class="api-code-header"><span>响应示例</span></div>
+<pre><code>{ "status": "ok" }</code></pre>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- 六、Webhook 回调 -->
+<!-- ═══════════════════════════════════════════ -->
+<div id="webhook" class="api-section reveal">
+    <div class="api-section-header">
+        <h3 class="api-section-title">六、Webhook 回调</h3>
+    </div>
+    <div class="card" style="margin-bottom:20px">
+        <p class="api-desc">发送请求时传入 <code class="code-inline">webhook_url</code>，任务状态变更后系统会向该地址发送 POST 请求。</p>
+        <h4 class="api-sub-title" style="margin-top:18px">触发时机</h4>
+        <div class="table-wrap" style="border:none;background:none;backdrop-filter:none">
+            <table>
+                <thead><tr>
+                    <th style="background:none;padding-left:0">触发条件</th>
+                    <th style="background:none">status 值</th>
+                    <th style="background:none">说明</th>
+                </tr></thead>
+                <tbody>
+                    <tr><td style="padding-left:0">邮件发送成功</td><td><code class="code-inline">sent</code></td><td>SMTP 服务器接受了邮件</td></tr>
+                    <tr><td style="padding-left:0">达到最大重试次数仍失败</td><td><code class="code-inline">failed</code></td><td>已不再重试，最终失败</td></tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="api-notice" style="margin-top:14px">
+            <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            <code class="code-inline">retry</code> 状态<strong>不触发</strong>回调，仅最终结果触发。
+        </div>
+    </div>
+
+    <div class="card" style="margin-bottom:20px">
+        <h4 class="api-sub-title">回调请求格式</h4>
+        <p class="api-desc">Mailpilot 向 <code class="code-inline">webhook_url</code> 发送 <strong>HTTP POST</strong> 请求，<code class="code-inline">Content-Type: application/json</code>。</p>
+        <div class="api-code-pair" style="margin-top:14px">
+            <div class="api-code-block">
+                <div class="api-code-header"><span>成功示例</span></div>
+<pre><code>{
+  "task_id": "550e8400-...",
+  "status": "sent",
+  "error": null
+}</code></pre>
+            </div>
+            <div class="api-code-block">
+                <div class="api-code-header"><span>失败示例</span></div>
+<pre><code>{
+  "task_id": "550e8400-...",
+  "status": "failed",
+  "error": "Connection refused: mx.example.com:25"
+}</code></pre>
+            </div>
+        </div>
+        <div class="table-wrap" style="border:none;background:none;backdrop-filter:none;margin-top:14px">
+            <table>
+                <thead><tr>
+                    <th style="background:none;padding-left:0">字段</th>
+                    <th style="background:none">类型</th>
+                    <th style="background:none">说明</th>
+                </tr></thead>
+                <tbody>
+                    <tr><td style="padding-left:0"><code class="code-inline">task_id</code></td><td>string</td><td>任务 UUID</td></tr>
+                    <tr><td style="padding-left:0"><code class="code-inline">status</code></td><td>string</td><td>sent（成功）或 failed（最终失败）</td></tr>
+                    <tr><td style="padding-left:0"><code class="code-inline">error</code></td><td>string | null</td><td>失败原因，成功时为 null</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="api-notice" style="margin-bottom:16px">
+            <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+            回调超时为 <strong>10 秒</strong>，超时或失败后<strong>不重试</strong>。请确保接收端能快速响应（立即返回 200，异步处理业务逻辑）。
+        </div>
+        <h4 class="api-sub-title">接收端示例</h4>
+
+        <div class="api-tab-group">
+            <div class="api-tabs">
+                <button class="api-tab active" onclick="switchTab(this, 'webhook-python')">Python (FastAPI)</button>
+                <button class="api-tab" onclick="switchTab(this, 'webhook-flask')">Python (Flask)</button>
+                <button class="api-tab" onclick="switchTab(this, 'webhook-node')">Node.js (Express)</button>
+            </div>
+            <div class="api-tab-content active" id="webhook-python">
+                <div class="api-code-block" style="border-radius:0 0 var(--radius-sm) var(--radius-sm)">
+                    <div class="api-code-header">
+                        <span>FastAPI 示例</span>
+                        <button class="api-copy-btn" onclick="copyCode(this)" title="复制"><svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg></button>
+                    </div>
+<pre><code>from fastapi import FastAPI, Request
+
+app = FastAPI()
+
+@app.post("/hooks/email-status")
+async def receive_webhook(request: Request):
+    data = await request.json()
+    task_id = data["task_id"]
+    status  = data["status"]
+    error   = data.get("error")
+
+    if status == "sent":
+        print(f"邮件 {task_id} 发送成功")
+    elif status == "failed":
+        print(f"邮件 {task_id} 发送失败：{error}")
+
+    return {"ok": True}  # 必须返回 2xx</code></pre>
+                </div>
+            </div>
+            <div class="api-tab-content" id="webhook-flask">
+                <div class="api-code-block" style="border-radius:0 0 var(--radius-sm) var(--radius-sm)">
+                    <div class="api-code-header">
+                        <span>Flask 示例</span>
+                        <button class="api-copy-btn" onclick="copyCode(this)" title="复制"><svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg></button>
+                    </div>
+<pre><code>from flask import Flask, request, jsonify
+
+app = Flask(__name__)
+
+@app.post("/hooks/email-status")
+def receive_webhook():
+    data    = request.get_json()
+    task_id = data["task_id"]
+    status  = data["status"]
+    error   = data.get("error")
+
+    if status == "sent":
+        print(f"邮件 {task_id} 发送成功")
+    elif status == "failed":
+        print(f"邮件 {task_id} 发送失败：{error}")
+
+    return jsonify({"ok": True})</code></pre>
+                </div>
+            </div>
+            <div class="api-tab-content" id="webhook-node">
+                <div class="api-code-block" style="border-radius:0 0 var(--radius-sm) var(--radius-sm)">
+                    <div class="api-code-header">
+                        <span>Express 示例</span>
+                        <button class="api-copy-btn" onclick="copyCode(this)" title="复制"><svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg></button>
+                    </div>
+<pre><code>const express = require('express');
+const app = express();
+app.use(express.json());
+
+app.post('/hooks/email-status', (req, res) => {
+  const { task_id, status, error } = req.body;
+
+  if (status === 'sent') {
+    console.log(`邮件 ${task_id} 发送成功`);
+  } else if (status === 'failed') {
+    console.log(`邮件 ${task_id} 发送失败：${error}`);
+  }
+
+  res.json({ ok: true }); // 必须返回 2xx
+});</code></pre>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- 七、错误响应 -->
+<!-- ═══════════════════════════════════════════ -->
+<div id="errors" class="api-section reveal">
+    <div class="api-section-header">
+        <h3 class="api-section-title">七、错误响应</h3>
+    </div>
+    <div class="card">
+        <p class="api-desc">所有接口在出错时返回统一格式：</p>
+        <div class="api-code-block" style="margin-bottom:16px">
+            <div class="api-code-header"><span>错误响应格式</span></div>
+<pre><code>{ "detail": "错误描述" }</code></pre>
+        </div>
+        <div class="table-wrap" style="border:none;background:none;backdrop-filter:none">
+            <table>
+                <thead><tr>
+                    <th style="background:none;padding-left:0">HTTP 状态码</th>
+                    <th style="background:none">含义</th>
+                </tr></thead>
+                <tbody>
+                    <tr><td style="padding-left:0"><span class="api-status-code api-status-4xx">400</span></td><td>请求参数错误（如 smtp_config 不是有效 UUID）</td></tr>
+                    <tr><td style="padding-left:0"><span class="api-status-code api-status-4xx">401</span></td><td>API Key 无效或缺失</td></tr>
+                    <tr><td style="padding-left:0"><span class="api-status-code api-status-4xx">404</span></td><td>资源不存在（模板、任务）</td></tr>
+                    <tr><td style="padding-left:0"><span class="api-status-code api-status-4xx">422</span></td><td>请求体格式错误（字段类型不匹配等）</td></tr>
+                    <tr><td style="padding-left:0"><span class="api-status-code api-status-5xx">500</span></td><td>服务器内部错误</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- 八、完整调用示例 -->
+<!-- ═══════════════════════════════════════════ -->
+<div id="examples" class="api-section reveal">
+    <div class="api-section-header">
+        <h3 class="api-section-title">八、完整调用示例</h3>
+    </div>
+
+    <div class="api-tab-group">
+        <div class="api-tabs">
+            <button class="api-tab active" onclick="switchTab(this, 'example-python')">Python</button>
+            <button class="api-tab" onclick="switchTab(this, 'example-js')">JavaScript</button>
+            <button class="api-tab" onclick="switchTab(this, 'example-curl')">curl</button>
+        </div>
+
+        <div class="api-tab-content active" id="example-python">
+            <div class="api-code-block" style="border-radius:0 0 var(--radius-sm) var(--radius-sm)">
+                <div class="api-code-header">
+                    <span>Python (httpx)</span>
+                    <button class="api-copy-btn" onclick="copyCode(this)" title="复制"><svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg></button>
+                </div>
+<pre><code>import httpx
+
+BASE_URL = "http://your-server:8000/api/v1"
+API_KEY  = "your-api-key-here"
+
+headers = {"X-API-Key": API_KEY}
+
+# 模板发送
+resp = httpx.post(
+    f"{BASE_URL}/send/template",
+    headers=headers,
+    json={
+        "to": ["user@example.com"],
+        "template": "registration_pending",
+        "variables": {
+            "username": "张三",
+            "email": "user@example.com",
+            "support_email": "support@example.com",
+        },
+    },
+)
+task_id = resp.json()["task_id"]
+
+# 查询结果
+result = httpx.get(f"{BASE_URL}/tasks/{task_id}", headers=headers)
+print(result.json()["status"])  # sent / failed / pending ...</code></pre>
+            </div>
+        </div>
+
+        <div class="api-tab-content" id="example-js">
+            <div class="api-code-block" style="border-radius:0 0 var(--radius-sm) var(--radius-sm)">
+                <div class="api-code-header">
+                    <span>JavaScript / Node.js</span>
+                    <button class="api-copy-btn" onclick="copyCode(this)" title="复制"><svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg></button>
+                </div>
+<pre><code>const BASE_URL = 'http://your-server:8000/api/v1';
+const API_KEY  = 'your-api-key-here';
+
+const headers = {
+  'X-API-Key': API_KEY,
+  'Content-Type': 'application/json',
+};
+
+// 模板发送
+const resp = await fetch(`${BASE_URL}/send/template`, {
+  method: 'POST',
+  headers,
+  body: JSON.stringify({
+    to: ['user@example.com'],
+    template: 'registration_pending',
+    variables: {
+      username: '张三',
+      email: 'user@example.com',
+      support_email: 'support@example.com',
+    },
+  }),
+});
+const { task_id } = await resp.json();
+
+// 查询状态
+const status = await fetch(`${BASE_URL}/tasks/${task_id}`, { headers });
+console.log(await status.json());</code></pre>
+            </div>
+        </div>
+
+        <div class="api-tab-content" id="example-curl">
+            <div class="api-code-block" style="border-radius:0 0 var(--radius-sm) var(--radius-sm)">
+                <div class="api-code-header">
+                    <span>curl</span>
+                    <button class="api-copy-btn" onclick="copyCode(this)" title="复制"><svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg></button>
+                </div>
+<pre><code># 模板发送
+curl -X POST http://your-server:8000/api/v1/send/template \
+  -H "X-API-Key: your-api-key-here" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "to": ["user@example.com"],
+    "template": "registration_pending",
+    "variables": {
+      "username": "张三",
+      "email": "user@example.com",
+      "support_email": "support@example.com"
+    }
+  }'
+
+# 查询任务状态
+curl http://your-server:8000/api/v1/tasks/{task_id} \
+  -H "X-API-Key: your-api-key-here"</code></pre>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+function copyCode(btn) {
+    const block = btn.closest('.api-code-block');
+    const code = block.querySelector('code').textContent;
+    navigator.clipboard.writeText(code).then(() => {
+        btn.innerHTML = '<svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="var(--accent)" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>';
+        setTimeout(() => {
+            btn.innerHTML = '<svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>';
+        }, 1500);
+    });
+}
+
+function switchTab(btn, targetId) {
+    const group = btn.closest('.api-tab-group');
+    group.querySelectorAll('.api-tab').forEach(t => t.classList.remove('active'));
+    group.querySelectorAll('.api-tab-content').forEach(c => c.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById(targetId).classList.add('active');
+}
+
+/* Smooth scroll for nav links */
+document.querySelectorAll('.api-nav-item').forEach(a => {
+    a.addEventListener('click', function(e) {
+        e.preventDefault();
+        const target = document.querySelector(this.getAttribute('href'));
+        if (target) {
+            target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+    });
+});
+</script>
+{% endblock %}

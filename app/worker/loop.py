@@ -3,7 +3,7 @@ import logging
 from datetime import datetime, timezone
 
 import httpx
-from sqlalchemy import func, or_, select, text, update
+from sqlalchemy import func, or_, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..config import settings
@@ -13,32 +13,13 @@ from ..models.email_task import EmailTask
 from ..models.project import Project
 from ..models.smtp_config import SmtpConfig
 from ..services import smtp_service
+from ..services.smtp_service import RateLimitExceeded, check_rate_limit
 from .events import SendEvent, event_bus
 from .retry import schedule_retry_or_fail
 from .sender import send_email
 from .state import worker_state
 
 logger = logging.getLogger(__name__)
-
-
-async def check_rate_limit(db: AsyncSession, smtp_config_id) -> None:
-    """检查近 1 小时发送量是否超出限制"""
-    result = await db.execute(
-        select(
-            func.count(EmailTask.id).label("cnt"),
-            SmtpConfig.max_per_hour,
-        )
-        .join(SmtpConfig, SmtpConfig.id == EmailTask.smtp_config_id)
-        .where(
-            EmailTask.smtp_config_id == smtp_config_id,
-            EmailTask.status == "sent",
-            EmailTask.sent_at >= func.now() - text("interval '1 hour'"),
-        )
-        .group_by(SmtpConfig.max_per_hour)
-    )
-    row = result.one_or_none()
-    if row and row.cnt >= row.max_per_hour:
-        raise Exception(f"超过每小时 {row.max_per_hour} 封限制")
 
 
 async def fetch_next_task(db: AsyncSession) -> EmailTask | None:
@@ -124,6 +105,17 @@ async def process_task(task_id) -> None:
                 # expunge 使对象脱离 session，保留已加载的列属性，
                 # 避免 session 关闭后访问属性时抛出 DetachedInstanceError
                 db.expunge(smtp_config)
+        except RateLimitExceeded as e:
+            # 限流：不消耗重试次数，延迟到限流窗口结束后重试
+            logger.info("限流排队 task=%s, retry_after=%s", task_id, e.retry_after)
+            async with db_session.async_session_maker() as db:
+                task = await db.get(EmailTask, task_id)
+                if task:
+                    task.status = "retry"
+                    task.error = str(e)
+                    task.next_retry_at = e.retry_after
+                    await db.commit()
+            return
         except Exception as e:
             phase1_error = str(e)
 

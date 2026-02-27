@@ -348,9 +348,89 @@ GET /api/v1/tasks?status=failed&page=1&page_size=20
 
 ---
 
-## 四、统计与健康
+## 四、SMTP 配置管理
 
-### 4.1 发送统计
+通过 API 管理项目的 SMTP 发送配置。每个项目可配置多个 SMTP，支持设置默认配置。
+
+### 4.1 获取 SMTP 配置列表
+
+**GET** `/config/smtp`
+
+**响应示例**
+
+```json
+[
+  {
+    "id": "...",
+    "project_id": "...",
+    "name": "主发送",
+    "host": "smtp.example.com",
+    "port": 587,
+    "username": "sender@example.com",
+    "use_tls": true,
+    "use_ssl": false,
+    "from_email": "sender@example.com",
+    "from_name": "系统通知",
+    "max_per_hour": 100,
+    "is_default": true,
+    "is_active": true,
+    "created_at": "2026-02-24T10:00:00Z"
+  }
+]
+```
+
+---
+
+### 4.2 创建 SMTP 配置
+
+**POST** `/config/smtp`
+
+**请求体**
+
+| 字段 | 类型 | 必填 | 说明 |
+|------|------|------|------|
+| `host` | `string` | ✅ | SMTP 服务器地址 |
+| `port` | `integer` | ❌ | 端口号，默认 `587` |
+| `username` | `string` | ✅ | SMTP 用户名 |
+| `password` | `string` | ✅ | SMTP 密码 |
+| `from_email` | `string` | ✅ | 发件人邮箱 |
+| `name` | `string` | ❌ | 配置名称 |
+| `use_tls` | `boolean` | ❌ | 是否使用 TLS，默认 `true` |
+| `use_ssl` | `boolean` | ❌ | 是否使用 SSL，默认 `false` |
+| `from_name` | `string` | ❌ | 发件人显示名称 |
+| `max_per_hour` | `integer` | ❌ | 每小时最大发送数，默认 `100` |
+| `is_default` | `boolean` | ❌ | 是否为默认配置，默认 `false` |
+
+---
+
+### 4.3 更新 SMTP 配置
+
+**PUT** `/config/smtp/{config_id}`
+
+只传需要修改的字段（支持部分更新），响应返回完整配置对象。
+
+---
+
+### 4.4 测试 SMTP 连接
+
+**POST** `/config/smtp/{config_id}/test`
+
+验证 SMTP 配置是否可以正常连接。
+
+**响应示例**
+
+```json
+{
+  "success": true,
+  "message": "SMTP 连接测试成功"
+}
+```
+
+---
+
+## 五、统计与健康
+
+### 5.1 发送统计
 
 **GET** `/stats`
 
@@ -368,7 +448,7 @@ GET /api/v1/tasks?status=failed&page=1&page_size=20
 
 ---
 
-### 4.2 健康检查
+### 5.2 健康检查
 
 **GET** `/health`
 
@@ -382,7 +462,7 @@ GET /api/v1/tasks?status=failed&page=1&page_size=20
 
 ---
 
-## 五、Webhook 回调
+## 六、Webhook 回调
 
 发送请求时传入 `webhook_url`，任务状态变更后系统会向该地址发送 POST 请求。
 
@@ -498,7 +578,7 @@ app.post('/hooks/email-status', (req, res) => {
 
 ---
 
-## 六、错误响应
+## 七、错误响应
 
 所有接口在出错时返回统一格式：
 
@@ -518,7 +598,7 @@ app.post('/hooks/email-status', (req, res) => {
 
 ---
 
-## 七、完整调用示例
+## 八、完整调用示例
 
 ### Python
 
@@ -607,9 +687,3 @@ curl http://your-server:8000/api/v1/tasks/{task_id} \
 
 ---
 
-## 附录：当前可用模板
-
-| 模板名称 | 用途 | 所需变量 |
-|---------|------|---------|
-| `registration_pending` | 注册申请已收到，等待审批 | `username`, `email`, `support_email` |
-| `registration_approved` | 注册审批通过，账号已激活 | `username`, `login_url`, `support_email` |

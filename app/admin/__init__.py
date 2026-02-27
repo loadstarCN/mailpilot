@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, Request
 from fastapi.responses import RedirectResponse
 
 from .account import router as account_router
+from .api_docs import router as api_docs_router
 from .auth import router as auth_router
 from .csrf import csrf_protect
 from .dashboard import router as dashboard_router
@@ -21,6 +22,7 @@ admin_router.include_router(email_templates_router)
 admin_router.include_router(tasks_router)
 admin_router.include_router(monitoring_router)
 admin_router.include_router(account_router)
+admin_router.include_router(api_docs_router)
 
 
 @admin_router.get("")
