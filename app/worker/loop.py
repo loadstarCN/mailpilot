@@ -93,6 +93,11 @@ async def process_task(task_id) -> None:
                 if not smtp_config:
                     raise Exception("没有可用的 SMTP 配置")
 
+                # 回写实际使用的 SMTP 配置 ID，确保统计数据准确
+                if not task.smtp_config_id:
+                    task.smtp_config_id = smtp_config.id
+                    await db.commit()
+
                 await check_rate_limit(db, smtp_config.id)
 
                 body_html = task.body_html
