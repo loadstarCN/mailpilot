@@ -97,7 +97,9 @@ function previewTemplate(id) {
         .then(r => { if (!r.ok) throw new Error(r.statusText); return r.text(); })
         .then(html => {
             const frame = document.getElementById('preview-frame');
-            frame.srcdoc = html.replace(/(<\?!DOCTYPE[^>]*>)/i, '');
+            html = html.replace(/<\\?!DOCTYPE[^>]*>/i, '');
+            const style = '<style>img{max-width:100%}img[src]:not([src=""]){border:none!important;outline:none!important}</style>';
+            frame.srcdoc = style + html;
             document.getElementById('preview-modal').style.display = '';
         })
         .catch(() => alert('预览失败'));
