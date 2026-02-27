@@ -2,84 +2,84 @@
 {% set active_page = "projects" %}
 {% block title %}项目管理 - Mailpilot{% endblock %}
 {% block content %}
-<div class="flex justify-between items-center mb-6">
-    <h2 class="text-2xl font-bold">项目管理</h2>
-    <a href="/admin/projects/create" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 text-sm">新建项目</a>
+<div class="page-header reveal">
+    <h2 class="page-title">项目管理</h2>
+    <a href="/admin/projects/create" class="btn btn-primary">
+        <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+        新建项目
+    </a>
 </div>
-<div class="bg-white rounded-lg shadow overflow-hidden">
-    <table class="w-full text-sm">
-        <thead class="bg-gray-50 text-gray-600">
+<div class="table-wrap reveal reveal-delay-1">
+    <table>
+        <thead>
             <tr>
-                <th class="px-4 py-3 text-left">项目名称</th>
-                <th class="px-4 py-3 text-left">API Key</th>
-                <th class="px-4 py-3 text-center">状态</th>
-                <th class="px-4 py-3 text-left">创建时间</th>
-                <th class="px-4 py-3 text-center">操作</th>
+                <th>项目名称</th>
+                <th>API Key</th>
+                <th style="text-align:center">状态</th>
+                <th>创建时间</th>
+                <th style="text-align:center">操作</th>
             </tr>
         </thead>
-        <tbody class="divide-y">
+        <tbody>
             {% for p in projects %}
-            <tr class="hover:bg-gray-50">
-                <td class="px-4 py-3 font-medium">{{ p.name }}</td>
-                <td class="px-4 py-3">
-                    <div class="flex items-center gap-1">
-                        <code class="text-xs bg-gray-100 px-2 py-1 rounded select-all" id="key-{{ p.id }}">{{ p.api_key[:8] }}{{ '*' * (p.api_key | length - 16) }}{{ p.api_key[-8:] }}</code>
-                        <span class="hidden text-xs" id="key-full-{{ p.id }}">{{ p.api_key }}</span>
-                        <!-- 显示/隐藏 -->
+            <tr>
+                <td style="font-weight:600;color:var(--text-primary)">{{ p.name }}</td>
+                <td>
+                    <div style="display:flex;align-items:center;gap:6px">
+                        <code class="code-inline" id="key-{{ p.id }}">{{ p.api_key[:8] }}{{ '*' * (p.api_key | length - 16) }}{{ p.api_key[-8:] }}</code>
+                        <span style="display:none" id="key-full-{{ p.id }}">{{ p.api_key }}</span>
                         <button type="button" title="显示/隐藏完整 Key"
                                 onclick="toggleKey('{{ p.id }}', '{{ p.api_key }}')"
-                                class="text-gray-400 hover:text-gray-700 p-0.5">
-                            <svg id="eye-{{ p.id }}" xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                                class="icon-btn">
+                            <svg id="eye-{{ p.id }}" width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
                             </svg>
-                            <svg id="eye-off-{{ p.id }}" xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"/>
+                            <svg id="eye-off-{{ p.id }}" width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="display:none">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"/>
                             </svg>
                         </button>
-                        <!-- 复制 -->
                         <button type="button" title="复制 API Key"
                                 onclick="copyKey('{{ p.id }}', '{{ p.api_key }}')"
-                                class="text-gray-400 hover:text-gray-700 p-0.5">
-                            <svg id="copy-{{ p.id }}" xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+                                class="icon-btn">
+                            <svg id="copy-{{ p.id }}" width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/>
                             </svg>
-                            <svg id="check-{{ p.id }}" xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 hidden text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                            <svg id="check-{{ p.id }}" width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="display:none;color:var(--accent)">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
                             </svg>
                         </button>
                     </div>
                 </td>
-                <td class="px-4 py-3 text-center">
+                <td style="text-align:center">
                     {% if p.is_active %}
-                    <span class="bg-green-100 text-green-700 px-2 py-0.5 rounded-full text-xs">活跃</span>
+                    <span class="badge badge-active">活跃</span>
                     {% else %}
-                    <span class="bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full text-xs">停用</span>
+                    <span class="badge badge-inactive">停用</span>
                     {% endif %}
                 </td>
-                <td class="px-4 py-3 text-gray-500">{{ p.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
-                <td class="px-4 py-3 text-center">
-                    <div class="flex items-center justify-center gap-1">
-                        <a href="/admin/projects/{{ p.id }}/edit" title="编辑"
-                           class="p-1.5 text-blue-600 hover:bg-blue-50 rounded transition-colors">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <td class="text-muted">{{ p.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                <td style="text-align:center">
+                    <div style="display:flex;align-items:center;justify-content:center;gap:2px">
+                        <a href="/admin/projects/{{ p.id }}/edit" title="编辑" class="icon-btn icon-btn-edit">
+                            <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
                             </svg>
                         </a>
-                        <form method="post" action="/admin/projects/{{ p.id }}/regenerate-key" class="inline"
+                        <form method="post" action="/admin/projects/{{ p.id }}/regenerate-key" style="display:inline"
                               onsubmit="return confirm('确认重新生成 API Key？旧的 Key 将立即失效。')">
                             <input type="hidden" name="_csrf_token" value="{{ request.state.csrf_token }}">
-                            <button title="重置 Key" class="p-1.5 text-yellow-600 hover:bg-yellow-50 rounded transition-colors">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <button title="重置 Key" class="icon-btn icon-btn-warning">
+                                <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
                                 </svg>
                             </button>
                         </form>
-                        <form method="post" action="/admin/projects/{{ p.id }}/delete" class="inline"
+                        <form method="post" action="/admin/projects/{{ p.id }}/delete" style="display:inline"
                               onsubmit="return confirm('确认删除此项目？所有相关数据将被清除。')">
                             <input type="hidden" name="_csrf_token" value="{{ request.state.csrf_token }}">
-                            <button title="删除" class="p-1.5 text-red-600 hover:bg-red-50 rounded transition-colors">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <button title="删除" class="icon-btn icon-btn-danger">
+                                <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
                                 </svg>
                             </button>
@@ -89,7 +89,7 @@
             </tr>
             {% endfor %}
             {% if not projects %}
-            <tr><td colspan="5" class="px-4 py-8 text-center text-gray-400">暂无项目</td></tr>
+            <tr><td colspan="5" style="text-align:center;padding:40px 18px;color:var(--text-muted)">暂无项目</td></tr>
             {% endif %}
         </tbody>
     </table>
@@ -103,21 +103,37 @@ function toggleKey(id, fullKey) {
     const eyeOff = document.getElementById('eye-off-' + id);
     const isHidden = code.textContent.includes('*');
     code.textContent = isHidden ? fullKey : fullKey.slice(0, 8) + '*'.repeat(fullKey.length - 16) + fullKey.slice(-8);
-    eye.classList.toggle('hidden', isHidden);
-    eyeOff.classList.toggle('hidden', !isHidden);
+    eye.style.display = isHidden ? 'none' : '';
+    eyeOff.style.display = isHidden ? '' : 'none';
+}
+
+function fallbackCopy(text) {
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.cssText = 'position:fixed;left:-9999px';
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
 }
 
 function copyKey(id, fullKey) {
-    navigator.clipboard.writeText(fullKey).then(() => {
+    const done = () => {
         const copy = document.getElementById('copy-' + id);
         const check = document.getElementById('check-' + id);
-        copy.classList.add('hidden');
-        check.classList.remove('hidden');
+        copy.style.display = 'none';
+        check.style.display = '';
         setTimeout(() => {
-            copy.classList.remove('hidden');
-            check.classList.add('hidden');
+            copy.style.display = '';
+            check.style.display = 'none';
         }, 1500);
-    });
+    };
+    if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(fullKey).then(done);
+    } else {
+        fallbackCopy(fullKey);
+        done();
+    }
 }
 </script>
 {% endblock %}

@@ -5,103 +5,105 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
 {% endblock %}
 {% block content %}
-<h2 class="text-2xl font-bold mb-6">仪表盘</h2>
+<h2 class="page-title reveal">仪表盘</h2>
 
 <!-- 概览卡片 -->
-<div class="grid grid-cols-3 gap-4 mb-6">
+<div class="grid-3">
     {% for label, key in [('今日', 'today'), ('本周', 'week'), ('本月', 'month')] %}
-    <div class="bg-white rounded-lg shadow p-5">
-        <h3 class="text-sm text-gray-500 mb-3">{{ label }}</h3>
-        <div class="text-3xl font-bold">{{ overview[key].total }}</div>
-        <div class="flex gap-4 mt-2 text-sm">
-            <span class="text-green-600">成功 {{ overview[key].success }}</span>
-            <span class="text-red-600">失败 {{ overview[key].failed }}</span>
+    <div class="card reveal reveal-delay-{{ loop.index }}">
+        <div class="card-header">{{ label }}</div>
+        <div class="card-value">{{ overview[key].total }}</div>
+        <div class="stat-inline">
+            <span class="text-success">成功 {{ overview[key].success }}</span>
+            <span class="text-danger">失败 {{ overview[key].failed }}</span>
         </div>
     </div>
     {% endfor %}
 </div>
 
-<div class="grid grid-cols-2 gap-4 mb-6">
+<div class="grid-2">
     <!-- 队列状态 -->
-    <div class="bg-white rounded-lg shadow p-5">
-        <h3 class="text-sm text-gray-500 mb-3">队列状态</h3>
-        <div class="space-y-2">
+    <div class="card reveal reveal-delay-4">
+        <div class="card-header">队列状态</div>
+        <div>
             {% for status, label in [('pending', '待发送'), ('processing', '发送中'), ('retry', '重试中'), ('sent', '已发送'), ('failed', '失败'), ('cancelled', '已取消')] %}
-            <div class="flex justify-between text-sm">
+            <div class="queue-row">
                 <span>{{ label }}</span>
-                <span class="font-medium">{{ queue_depth.get(status, 0) }}</span>
+                <span>{{ queue_depth.get(status, 0) }}</span>
             </div>
             {% endfor %}
         </div>
     </div>
 
     <!-- 项目排行 -->
-    <div class="bg-white rounded-lg shadow p-5">
-        <h3 class="text-sm text-gray-500 mb-3">项目发送量排行</h3>
+    <div class="card reveal reveal-delay-5">
+        <div class="card-header">项目发送量排行</div>
         {% if project_ranking %}
-        <div class="space-y-2">
+        <div>
             {% for p in project_ranking %}
-            <div class="flex justify-between text-sm">
+            <div class="queue-row">
                 <span>{{ p.name }}</span>
-                <span class="font-medium">{{ p.total }} <span class="text-green-600 text-xs">({{ p.success }})</span></span>
+                <span>{{ p.total }} <span class="text-success" style="font-size:0.75rem">({{ p.success }})</span></span>
             </div>
             {% endfor %}
         </div>
         {% else %}
-        <p class="text-gray-400 text-sm">暂无数据</p>
+        <p class="text-muted" style="font-size:0.85rem">暂无数据</p>
         {% endif %}
     </div>
 </div>
 
 <!-- SMTP 健康状态 -->
-<div class="bg-white rounded-lg shadow p-5 mb-6">
-    <h3 class="text-sm text-gray-500 mb-3">SMTP 配置健康状态</h3>
+<div class="card reveal" style="margin-bottom:24px">
+    <div class="card-header">SMTP 配置健康状态</div>
     {% if smtp_health %}
-    <div class="grid grid-cols-2 gap-3">
+    <div class="grid-2-tight">
         {% for s in smtp_health %}
-        <div class="border rounded p-3 text-sm">
-            <div class="font-medium">{{ s.name }}</div>
-            <div class="text-xs text-gray-500">{{ s.host }} | {{ s.from_email }}</div>
-            <div class="mt-1">
-                <span class="{% if s.success_rate >= 90 %}text-green-600{% elif s.success_rate >= 70 %}text-yellow-600{% else %}text-red-600{% endif %}">
+        <div class="smtp-health-item">
+            <div style="font-weight:600;color:var(--text-primary);font-size:0.875rem">{{ s.name }}</div>
+            <div style="font-size:0.75rem;color:var(--text-muted);margin-top:2px">{{ s.host }} | {{ s.from_email }}</div>
+            <div style="margin-top:8px;font-size:0.825rem">
+                <span class="{% if s.success_rate >= 90 %}text-success{% elif s.success_rate >= 70 %}text-warning{% else %}text-danger{% endif %}">
                     成功率 {{ s.success_rate }}%
                 </span>
-                <span class="text-gray-400 ml-2">{{ s.total }} 封</span>
+                <span class="text-muted" style="margin-left:10px">{{ s.total }} 封</span>
             </div>
         </div>
         {% endfor %}
     </div>
     {% else %}
-    <p class="text-gray-400 text-sm">暂无数据</p>
+    <p class="text-muted" style="font-size:0.85rem">暂无数据</p>
     {% endif %}
 </div>
 
 <!-- 最近失败 -->
-<div class="bg-white rounded-lg shadow p-5">
-    <h3 class="text-sm text-gray-500 mb-3">最近失败任务</h3>
+<div class="card reveal">
+    <div class="card-header">最近失败任务</div>
     {% if recent_failures %}
-    <table class="w-full text-sm">
-        <thead class="text-gray-600">
-            <tr>
-                <th class="text-left pb-2">收件人</th>
-                <th class="text-left pb-2">主题</th>
-                <th class="text-left pb-2">错误</th>
-                <th class="text-left pb-2">时间</th>
-            </tr>
-        </thead>
-        <tbody class="divide-y">
-            {% for t in recent_failures %}
-            <tr>
-                <td class="py-2">{{ t.to_addrs[0] if t.to_addrs else '-' }}</td>
-                <td class="py-2">{{ t.subject[:30] }}</td>
-                <td class="py-2 text-red-600 text-xs">{{ (t.error or '-')[:50] }}</td>
-                <td class="py-2 text-gray-500">{{ t.created_at.strftime('%m-%d %H:%M') }}</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+    <div class="table-wrap" style="border:none;background:none;backdrop-filter:none">
+        <table>
+            <thead>
+                <tr>
+                    <th style="background:none;padding-left:0">收件人</th>
+                    <th style="background:none">主题</th>
+                    <th style="background:none">错误</th>
+                    <th style="background:none;padding-right:0">时间</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for t in recent_failures %}
+                <tr>
+                    <td style="padding-left:0">{{ t.to_addrs[0] if t.to_addrs else '-' }}</td>
+                    <td>{{ t.subject[:30] }}</td>
+                    <td class="text-danger" style="font-size:0.75rem">{{ (t.error or '-')[:50] }}</td>
+                    <td class="text-muted" style="padding-right:0">{{ t.created_at.strftime('%m-%d %H:%M') }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
     {% else %}
-    <p class="text-gray-400 text-sm">暂无失败任务</p>
+    <p class="text-muted" style="font-size:0.85rem">暂无失败任务</p>
     {% endif %}
 </div>
 {% endblock %}
