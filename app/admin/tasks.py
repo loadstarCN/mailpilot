@@ -1,13 +1,13 @@
 import uuid
 
 from fastapi import APIRouter, Depends, Request
-from fastapi.responses import HTMLResponse, RedirectResponse
+from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..db.session import get_db
 from ..models.admin import Admin
-from ..services import project_service, task_service
+from ..services import project_service, task_service, template_service
 from .deps import get_current_admin, get_flash, set_flash
 
 router = APIRouter(prefix="/tasks")
@@ -63,6 +63,68 @@ async def task_retry(
     response = RedirectResponse(url="/admin/tasks", status_code=303)
     set_flash(response, msg, "success" if success else "error")
     return response
+
+
+@router.get("/{task_id}/preview")
+async def task_preview(
+    task_id: uuid.UUID,
+    request: Request,
+    db: AsyncSession = Depends(get_db),
+    admin: Admin = Depends(get_current_admin),
+):
+    task = await task_service.get_task(db, task_id)
+    if not task:
+        return JSONResponse({"error": "任务不存在"}, status_code=404)
+
+    result: dict = {
+        "subject": task.subject,
+        "to_addrs": list(task.to_addrs or []),
+        "cc_addrs": list(task.cc_addrs) if task.cc_addrs else None,
+        "created_at": task.created_at.isoformat() if task.created_at else None,
+    }
+
+    if not task.template_id:
+        # 直接发送：数据库中已有完整内容
+        result["type"] = "direct"
+        result["body_html"] = task.body_html
+        result["body_text"] = task.body_text
+    else:
+        result["template_vars"] = task.template_vars
+        tpl = await template_service.get_template_by_name(
+            db, task.project_id, task.template_id
+        )
+        if not tpl:
+            # 模板已删除
+            result["type"] = "deleted"
+            result["warning"] = "原始模板已删除，无法渲染预览"
+            result["body_html"] = None
+            result["body_text"] = None
+        else:
+            # 检查模板是否在任务创建后被修改
+            modified = (
+                tpl.updated_at and task.created_at
+                and tpl.updated_at > task.created_at
+            )
+            try:
+                subject, body_html, body_text = template_service.render_preview(
+                    tpl.subject, tpl.body_html, tpl.body_text,
+                    task.template_vars or {},
+                )
+                result["subject"] = subject
+                result["body_html"] = body_html
+                result["body_text"] = body_text
+            except Exception:
+                result["body_html"] = None
+                result["body_text"] = None
+                modified = True  # 渲染失败视为模板有问题
+
+            if modified:
+                result["type"] = "modified"
+                result["warning"] = "模板在此邮件发送后已被修改，以下内容可能与实际发送不一致"
+            else:
+                result["type"] = "ok"
+
+    return JSONResponse(result)
 
 
 @router.post("/{task_id}/cancel")

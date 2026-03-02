@@ -57,6 +57,12 @@
                 <td class="text-muted">{{ t.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
                 <td style="text-align:center">
                     <div style="display:flex;align-items:center;justify-content:center;gap:2px">
+                        <button title="查看" class="icon-btn icon-btn-edit" onclick="previewTask('{{ t.id }}')">
+                            <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                            </svg>
+                        </button>
                         {% if t.status == 'failed' %}
                         <form method="post" action="/admin/tasks/{{ t.id }}/retry" style="display:inline">
                             <input type="hidden" name="_csrf_token" value="{{ request.state.csrf_token }}">
@@ -75,8 +81,6 @@
                                 </svg>
                             </button>
                         </form>
-                        {% else %}
-                        <span class="text-muted">-</span>
                         {% endif %}
                     </div>
                 </td>
@@ -96,4 +100,93 @@
     {% endfor %}
 </div>
 {% endif %}
+
+<!-- 任务预览弹窗 -->
+<div id="preview-modal" class="modal-overlay" style="display:none">
+    <div class="modal-content" style="max-width:56rem">
+        <div class="modal-header">
+            <div style="flex:1;min-width:0">
+                <h3 id="preview-subject" style="margin:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></h3>
+                <div id="preview-meta" style="font-size:0.75rem;color:var(--text-muted);margin-top:4px"></div>
+            </div>
+            <button onclick="closePreview()" class="modal-close">&times;</button>
+        </div>
+        <div id="preview-warning" style="display:none;padding:8px 16px;background:rgba(255,193,7,0.15);color:#e6a700;font-size:0.8rem;border-bottom:1px solid var(--border-light)"></div>
+        <div class="modal-body" style="padding:0">
+            <iframe id="preview-frame" style="width:100%;border:0;min-height:400px;background:#fff;border-radius:0 0 12px 12px"></iframe>
+        </div>
+        <div id="preview-vars" style="display:none;border-top:1px solid var(--border-light);padding:12px 16px;max-height:200px;overflow:auto">
+            <details>
+                <summary style="cursor:pointer;font-size:0.8rem;color:var(--text-muted);user-select:none">原始模板变量 (template_vars)</summary>
+                <pre id="preview-vars-content" style="margin:8px 0 0;font-size:0.75rem;background:var(--bg-primary);padding:10px;border-radius:8px;overflow-x:auto"></pre>
+            </details>
+        </div>
+    </div>
+</div>
+
+<script>
+function previewTask(id) {
+    fetch('/admin/tasks/' + id + '/preview')
+        .then(r => { if (!r.ok) throw new Error(r.statusText); return r.json(); })
+        .then(data => {
+            document.getElementById('preview-subject').textContent = data.subject || '(无主题)';
+
+            // 收件人信息
+            let meta = '收件人：' + (data.to_addrs || []).join(', ');
+            if (data.cc_addrs && data.cc_addrs.length) meta += ' | 抄送：' + data.cc_addrs.join(', ');
+            if (data.created_at) meta += ' | ' + data.created_at.replace('T', ' ').substring(0, 19);
+            document.getElementById('preview-meta').textContent = meta;
+
+            // 警告提示
+            const warningEl = document.getElementById('preview-warning');
+            if (data.warning) {
+                warningEl.textContent = data.warning;
+                warningEl.style.display = '';
+            } else {
+                warningEl.style.display = 'none';
+            }
+
+            // 邮件内容
+            const frame = document.getElementById('preview-frame');
+            if (data.body_html) {
+                let html = data.body_html.replace(/<\?!DOCTYPE[^>]*>/i, '');
+                const style = '<style>body{margin:12px;font-family:sans-serif}img{max-width:100%}</style>';
+                frame.srcdoc = style + html;
+            } else if (data.body_text) {
+                frame.srcdoc = '<pre style="margin:12px;font-family:sans-serif;white-space:pre-wrap">' +
+                    data.body_text.replace(/</g, '&lt;') + '</pre>';
+            } else {
+                frame.srcdoc = '<p style="margin:12px;color:#999">(无邮件内容)</p>';
+            }
+
+            // 模板变量
+            const varsEl = document.getElementById('preview-vars');
+            if (data.template_vars && Object.keys(data.template_vars).length > 0) {
+                document.getElementById('preview-vars-content').textContent =
+                    JSON.stringify(data.template_vars, null, 2);
+                varsEl.style.display = '';
+                // 模板被修改或删除时自动展开变量
+                if (data.type === 'modified' || data.type === 'deleted') {
+                    varsEl.querySelector('details').open = true;
+                } else {
+                    varsEl.querySelector('details').open = false;
+                }
+            } else {
+                varsEl.style.display = 'none';
+            }
+
+            document.getElementById('preview-modal').style.display = '';
+        })
+        .catch(() => alert('预览加载失败'));
+}
+
+function closePreview() {
+    document.getElementById('preview-modal').style.display = 'none';
+    document.getElementById('preview-frame').srcdoc = '';
+}
+
+document.getElementById('preview-modal').addEventListener('click', function(e) {
+    if (e.target === this) closePreview();
+});
+</script>
 {% endblock %}

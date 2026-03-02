@@ -152,6 +152,10 @@ async def process_task(task_id) -> None:
             if not task:
                 return
 
+            # 模板渲染成功时回写最终主题，便于管理界面显示
+            if task.template_id and not phase1_error:
+                task.subject = subject
+
             if send_error:
                 logger.error("发送失败 task=%s: %s", task_id, send_error)
                 await schedule_retry_or_fail(db, task, send_error)
