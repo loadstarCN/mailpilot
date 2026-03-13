@@ -34,11 +34,13 @@ async def create_template(
 
 
 async def list_templates(
-    db: AsyncSession, project_id: uuid.UUID | None = None
+    db: AsyncSession, project_id: uuid.UUID | None = None, active_only: bool = False
 ) -> list[EmailTemplate]:
     stmt = select(EmailTemplate).order_by(EmailTemplate.created_at.desc())
     if project_id:
         stmt = stmt.where(EmailTemplate.project_id == project_id)
+    if active_only:
+        stmt = stmt.where(EmailTemplate.is_active.is_(True))
     result = await db.execute(stmt)
     return list(result.scalars().all())
 
@@ -48,15 +50,15 @@ async def get_template(db: AsyncSession, template_id: uuid.UUID) -> EmailTemplat
 
 
 async def get_template_by_name(
-    db: AsyncSession, project_id: uuid.UUID, name: str
+    db: AsyncSession, project_id: uuid.UUID, name: str, *, active_only: bool = True
 ) -> EmailTemplate | None:
-    result = await db.execute(
-        select(EmailTemplate).where(
-            EmailTemplate.project_id == project_id,
-            EmailTemplate.name == name,
-            EmailTemplate.is_active.is_(True),
-        )
+    stmt = select(EmailTemplate).where(
+        EmailTemplate.project_id == project_id,
+        EmailTemplate.name == name,
     )
+    if active_only:
+        stmt = stmt.where(EmailTemplate.is_active.is_(True))
+    result = await db.execute(stmt)
     return result.scalar_one_or_none()
 
 

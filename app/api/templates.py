@@ -78,7 +78,7 @@ async def delete_template(
     db: AsyncSession = Depends(get_db),
     project: Project = Depends(get_current_project),
 ):
-    tpl = await template_service.get_template_by_name(db, project.id, name)
+    tpl = await template_service.get_template_by_name(db, project.id, name, active_only=False)
     if not tpl:
         raise HTTPException(status_code=404, detail="模板不存在")
     await template_service.delete_template(db, tpl.id)
