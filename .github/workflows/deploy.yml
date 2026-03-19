@@ -1,0 +1,38 @@
+name: Deploy to Production
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    name: Deploy to 47.100.33.68
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          port: 22
+          script: |
+            set -e
+            cd /var/www/mailpilot
+
+            # 拉取最新代码
+            git pull origin main
+
+            # 安装/更新依赖（pyproject.toml 有变化时）
+            venv/bin/pip install -e . -q
+
+            # 运行数据库迁移
+            venv/bin/alembic upgrade head
+
+            # 重启服务
+            systemctl restart mailpilot
+
+            # 等待启动并检查状态
+            sleep 2
+            systemctl is-active mailpilot && echo "✅ Deploy successful" || (echo "❌ Service failed" && exit 1)
