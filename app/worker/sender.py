@@ -1,5 +1,6 @@
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
+from email.utils import formatdate, make_msgid
 
 import aiosmtplib
 
@@ -25,6 +26,9 @@ async def send_email(
     )
     msg["To"] = ", ".join(to_addrs)
     msg["Subject"] = subject
+    msg["Date"] = formatdate(localtime=True)
+    # 用发件域名生成 Message-ID,避免暴露主机名且利于送达率
+    msg["Message-ID"] = make_msgid(domain=smtp_config.from_email.rpartition("@")[2])
 
     if cc_addrs:
         msg["Cc"] = ", ".join(cc_addrs)
