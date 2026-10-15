@@ -56,7 +56,7 @@
                 </td>
                 <td>{{ c.host }}:{{ c.port }}</td>
                 <td>{{ c.from_email }}</td>
-                <td style="text-align:center">{{ c.max_per_hour }}/h</td>
+                <td style="text-align:center">{{ c.max_per_hour }}/h{% if c.max_per_day %}<br><span class="text-muted">{{ c.max_per_day }}/d</span>{% endif %}</td>
                 <td style="text-align:center">
                     {% if c.is_active %}
                     <span class="badge badge-active">活跃</span>

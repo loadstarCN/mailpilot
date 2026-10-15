@@ -11,49 +11,69 @@ from ..models.email_task import EmailTask
 from ..models.smtp_config import SmtpConfig
 
 
-class RateLimitExceeded(Exception):
-    """SMTP 发送频率超限，携带限流窗口结束时间"""
+# 限流窗口：window → (SQL 时间间隔, 窗口时长, 提示文案)
+_RATE_WINDOWS = {
+    "hour": ("interval '1 hour'", timedelta(hours=1), "每小时"),
+    "day": ("interval '24 hours'", timedelta(hours=24), "每天"),
+}
 
-    def __init__(self, max_per_hour: int, retry_after: datetime):
-        self.max_per_hour = max_per_hour
+
+class RateLimitExceeded(Exception):
+    """SMTP 发送频率超限，携带限流窗口结束时间
+
+    window 区分触发的是每小时（"hour"）还是每天（"day"）上限，limit 为该窗口的上限
+    """
+
+    def __init__(self, limit: int, retry_after: datetime, window: str = "hour"):
+        self.limit = limit
         self.retry_after = retry_after
-        super().__init__(f"超过每小时 {max_per_hour} 封限制")
+        self.window = window
+        super().__init__(f"超过{_RATE_WINDOWS[window][2]} {limit} 封限制")
+
+
+async def _count_sent_in_window(
+    db: AsyncSession, smtp_config_id, interval: str
+) -> tuple[int, datetime | None]:
+    """统计窗口内该配置已发送（status='sent'）的数量及最早发送时间"""
+    result = await db.execute(
+        select(func.count(EmailTask.id), func.min(EmailTask.sent_at)).where(
+            EmailTask.smtp_config_id == smtp_config_id,
+            EmailTask.status == "sent",
+            EmailTask.sent_at >= func.now() - text(interval),
+        )
+    )
+    count, earliest = result.one()
+    return count, earliest
 
 
 async def check_rate_limit(db: AsyncSession, smtp_config_id) -> None:
-    """检查近 1 小时发送量是否超出限制，超限时抛出 RateLimitExceeded"""
-    result = await db.execute(
-        select(
-            func.count(EmailTask.id).label("cnt"),
-            SmtpConfig.max_per_hour,
-        )
-        .join(SmtpConfig, SmtpConfig.id == EmailTask.smtp_config_id)
-        .where(
-            EmailTask.smtp_config_id == smtp_config_id,
-            EmailTask.status == "sent",
-            EmailTask.sent_at >= func.now() - text("interval '1 hour'"),
-        )
-        .group_by(SmtpConfig.max_per_hour)
-    )
-    row = result.one_or_none()
-    if row and row.cnt >= row.max_per_hour:
-        # 查询窗口内最早的 sent_at，计算限流窗口结束时间
-        earliest = await db.execute(
-            select(EmailTask.sent_at)
-            .where(
-                EmailTask.smtp_config_id == smtp_config_id,
-                EmailTask.status == "sent",
-                EmailTask.sent_at >= func.now() - text("interval '1 hour'"),
-            )
-            .order_by(EmailTask.sent_at.asc())
-            .limit(1)
-        )
-        earliest_sent_at = earliest.scalar_one()
-        retry_after = earliest_sent_at + timedelta(hours=1, seconds=5)
+    """检查近 1 小时 / 近 24 小时发送量是否超出限制，超限时抛出 RateLimitExceeded
+
+    每天上限按滚动 24 小时计：任意 24 小时内不超，任何自然日也就不会超。
+    两个窗口同时超限时，按结束更晚的窗口抛出（retry_after 取较晚者）。
+    """
+    config = await db.get(SmtpConfig, smtp_config_id)
+    if not config:
+        return
+    limits = [("hour", config.max_per_hour)]
+    if config.max_per_day:  # None / 0 表示不限
+        limits.append(("day", config.max_per_day))
+
+    exceeded: RateLimitExceeded | None = None
+    for window, limit in limits:
+        interval, duration, _ = _RATE_WINDOWS[window]
+        count, earliest_sent_at = await _count_sent_in_window(db, smtp_config_id, interval)
+        if not count or count < limit:
+            continue
+        # 窗口内最早一封移出窗口后才有空位
+        retry_after = earliest_sent_at + duration + timedelta(seconds=5)
         # 确保 retry_after 带时区信息
         if retry_after.tzinfo is None:
             retry_after = retry_after.replace(tzinfo=timezone.utc)
-        raise RateLimitExceeded(row.max_per_hour, retry_after)
+        if exceeded is None or retry_after > exceeded.retry_after:
+            exceeded = RateLimitExceeded(limit, retry_after, window)
+    if exceeded:
+        raise exceeded
 
 _crypto = CryptoService(settings.secret_key)
 
@@ -87,6 +107,7 @@ async def create_smtp_config(
     from_email: str,
     from_name: str | None = None,
     max_per_hour: int = 100,
+    max_per_day: int | None = None,
     is_default: bool = False,
 ) -> SmtpConfig:
     if is_default:
@@ -103,6 +124,7 @@ async def create_smtp_config(
         from_email=from_email,
         from_name=from_name,
         max_per_hour=max_per_hour,
+        max_per_day=max_per_day,
         is_default=is_default,
         is_active=True,  # 显式设置，避免 async ORM flush 前为 None 导致编辑页渲染错误
     )
@@ -152,7 +174,8 @@ async def update_smtp_config(
         await _clear_project_defaults(db, config.project_id, exclude_id=config_id)
     for key, value in kwargs.items():
         # 布尔值（True/False）需直接设置；只跳过 None（表示"不修改此字段"）
-        if value is not None:
+        # max_per_day 例外：None 本身就是有效值（不限），显式传入即写入
+        if value is not None or key == "max_per_day":
             setattr(config, key, value)
     await db.commit()
     await db.refresh(config)

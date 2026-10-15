@@ -1,7 +1,7 @@
 import uuid
 from datetime import datetime
 
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, Field
 
 
 class SmtpConfigCreate(BaseModel):
@@ -15,6 +15,7 @@ class SmtpConfigCreate(BaseModel):
     from_email: EmailStr
     from_name: str | None = None
     max_per_hour: int = 100
+    max_per_day: int | None = Field(default=None, ge=0)  # None/0 = 不限
     is_default: bool = False
 
 
@@ -29,6 +30,7 @@ class SmtpConfigUpdate(BaseModel):
     from_email: str | None = None
     from_name: str | None = None
     max_per_hour: int | None = None
+    max_per_day: int | None = Field(default=None, ge=0)  # 显式传 null 或 0 改为不限
     is_default: bool | None = None
     is_active: bool | None = None
 
@@ -45,6 +47,7 @@ class SmtpConfigResponse(BaseModel):
     from_email: str
     from_name: str | None
     max_per_hour: int
+    max_per_day: int | None
     is_default: bool
     is_active: bool
     created_at: datetime

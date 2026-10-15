@@ -372,6 +372,7 @@ GET /api/v1/tasks?status=failed&page=1&page_size=20
     "from_email": "sender@example.com",
     "from_name": "系统通知",
     "max_per_hour": 100,
+    "max_per_day": null,
     "is_default": true,
     "is_active": true,
     "created_at": "2026-02-24T10:00:00Z"
@@ -399,6 +400,7 @@ GET /api/v1/tasks?status=failed&page=1&page_size=20
 | `use_ssl` | `boolean` | ❌ | 是否使用 SSL，默认 `false` |
 | `from_name` | `string` | ❌ | 发件人显示名称 |
 | `max_per_hour` | `integer` | ❌ | 每小时最大发送数，默认 `100` |
+| `max_per_day` | `integer` | ❌ | 每天最大发送数（按滚动 24 小时计），默认 `null`；`null` / `0` 表示不限 |
 | `is_default` | `boolean` | ❌ | 是否为默认配置，默认 `false` |
 
 ---
@@ -407,7 +409,7 @@ GET /api/v1/tasks?status=failed&page=1&page_size=20
 
 **PUT** `/config/smtp/{config_id}`
 
-只传需要修改的字段（支持部分更新），响应返回完整配置对象。
+只传需要修改的字段（支持部分更新），响应返回完整配置对象。`max_per_day` 显式传 `null` 或 `0` 表示改为不限。
 
 ---
 

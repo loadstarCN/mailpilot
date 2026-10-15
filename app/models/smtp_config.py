@@ -26,6 +26,8 @@ class SmtpConfig(Base):
     from_email: Mapped[str] = mapped_column(String(255))
     from_name: Mapped[str | None] = mapped_column(String(100))
     max_per_hour: Mapped[int] = mapped_column(Integer, default=100)
+    # 每天发送上限（按滚动 24 小时计），None/0 = 不限
+    max_per_day: Mapped[int | None] = mapped_column(Integer)
     is_default: Mapped[bool] = mapped_column(Boolean, default=False)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
     created_at: Mapped[datetime] = mapped_column(

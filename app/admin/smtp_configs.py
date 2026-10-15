@@ -14,6 +14,12 @@ router = APIRouter(prefix="/smtp-configs")
 templates = Jinja2Templates(directory="templates")
 
 
+def _parse_optional_int(value) -> int | None:
+    """解析可留空的数字表单字段：空串 / 未提交返回 None"""
+    value = (value or "").strip()
+    return int(value) if value else None
+
+
 @router.get("", response_class=HTMLResponse)
 async def smtp_config_list(
     request: Request,
@@ -88,6 +94,7 @@ async def smtp_config_create_submit(
         from_email=form.get("from_email", ""),
         from_name=form.get("from_name") or None,
         max_per_hour=int(form.get("max_per_hour", 100)),
+        max_per_day=_parse_optional_int(form.get("max_per_day")),  # 留空 = 不限
         is_default="is_default" in form,
     )
     response = RedirectResponse(url="/admin/smtp-configs", status_code=303)
@@ -130,6 +137,7 @@ async def smtp_config_edit_submit(
         "from_email": form.get("from_email", ""),
         "from_name": form.get("from_name") or None,
         "max_per_hour": int(form.get("max_per_hour", 100)),
+        "max_per_day": _parse_optional_int(form.get("max_per_day")),  # 留空 = 不限
         "is_default": "is_default" in form,
         "is_active": "is_active" in form,
     }

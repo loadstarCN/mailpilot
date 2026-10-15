@@ -76,4 +76,11 @@ class EmailTask(Base):
             "status",
             created_at.desc(),
         ),
+        # 限流统计：按 SMTP 配置统计近 1 小时 / 24 小时已发送数量
+        Index(
+            "idx_tasks_smtp_status_sent",
+            "smtp_config_id",
+            "status",
+            "sent_at",
+        ),
     )

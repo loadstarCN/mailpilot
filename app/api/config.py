@@ -42,6 +42,7 @@ async def create_smtp_config(
         from_email=str(req.from_email),
         from_name=req.from_name,
         max_per_hour=req.max_per_hour,
+        max_per_day=req.max_per_day,
         is_default=req.is_default,
     )
     return config

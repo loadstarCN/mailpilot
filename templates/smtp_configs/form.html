@@ -50,9 +50,15 @@
                 <input type="text" name="from_name" value="{{ config.from_name or '' if config else '' }}" class="form-input">
             </div>
         </div>
-        <div>
-            <label class="form-label">每小时发送上限</label>
-            <input type="number" name="max_per_hour" value="{{ config.max_per_hour if config else 100 }}" class="form-input">
+        <div class="grid-2-form">
+            <div>
+                <label class="form-label">每小时发送上限</label>
+                <input type="number" name="max_per_hour" value="{{ config.max_per_hour if config else 100 }}" class="form-input">
+            </div>
+            <div>
+                <label class="form-label" title="按滚动 24 小时计">每天发送上限（留空不限）</label>
+                <input type="number" name="max_per_day" min="0" value="{{ config.max_per_day or '' if config else '' }}" placeholder="不限" class="form-input">
+            </div>
         </div>
         <div style="display:flex;gap:20px;flex-wrap:wrap">
             <label style="display:flex;align-items:center;gap:8px;cursor:pointer" title="STARTTLS，端口 587">
